@@ -22,11 +22,15 @@ documenta el método original y `docs/fbrs.md` desarrolla la adaptación de FBRS
 ## Conjunto de datos y definición de la tarea
 
 `dataset/`, excluido de Git, contiene grabaciones de anuros con formato AnuraSet. La auditoría
-del CSV local realizada el 27 de agosto de 2026 produjo el siguiente estado:
+del corte local realizada el 27 de agosto de 2026 y verificada el 28 de agosto de 2026 produjo el
+siguiente estado; [`dataset-audit.md`](dataset-audit.md) conserva la huella del CSV, el
+procedimiento y los hallazgos completos:
 
 | Propiedad | Valor |
 |---|---:|
 | Clips | 62,191 |
+| Grabaciones independientes | 1,074 |
+| Sitios | 4 |
 | Duración por clip | 3 s |
 | Audio | 22.05 kHz, mono, 16 bits |
 | Columnas de etiquetas | 42 |
@@ -37,9 +41,10 @@ del CSV local realizada el 27 de agosto de 2026 produjo el siguiente estado:
 | Filas sin positivos en las 31 etiquetas principales | 22,731 (36.550 %) |
 | Filas con positivos solo en etiquetas excluidas | 227 |
 
-Los segmentos se encuentran en `dataset/train/*.wav` y siguen el patrón
-`INCT<site>_<date>_<time>_<start>_<end>.wav`. `dataset/train.csv` contiene `filename` y las
-columnas multihot.
+Los segmentos se encuentran en `dataset/train/*.wav`. El nombre termina en
+`_<start>_<end>.wav` y su prefijo identifica la grabación; aunque la forma predominante es
+`INCT<site>_<date>_<time>_<start>_<end>.wav`, la auditoría encontró una grabación cuyo prefijo
+incluye un componente adicional. `dataset/train.csv` contiene `filename` y las columnas multihot.
 
 La tarea es de clasificación multietiqueta. La taxonomía principal contiene 31 especies con
 soporte en al menos 10 grabaciones independientes. Las etiquetas con menor soporte se reservan

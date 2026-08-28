@@ -2,13 +2,17 @@
 
 Este documento define la política vigente de selección de etiquetas y creación de particiones.
 Forma parte del protocolo descrito en [`methodology.md`](methodology.md) y debe aplicarse antes de
-ajustar representaciones, entrenar modelos o seleccionar umbrales.
+ajustar representaciones, entrenar modelos o seleccionar umbrales. Los conteos y controles que
+sustentan estas decisiones se registran en [`dataset-audit.md`](dataset-audit.md).
 
 ## Unidad de partición
 
 La unidad indivisible es `recording_id`, obtenido al eliminar el sufijo `_inicio_fin.wav` del
 nombre de cada segmento. Todos los clips provenientes de una misma grabación deben pertenecer
 exclusivamente a entrenamiento, validación o prueba.
+
+La extracción no debe asumir una cantidad fija de componentes separados por `_`: la auditoría
+identificó una grabación cuyo prefijo contiene un componente adicional.
 
 No se permite que un mismo `recording_id` aparezca en más de una partición.
 
@@ -69,7 +73,9 @@ Los clips que contienen positivos únicamente en etiquetas excluidas se contabil
 La auditoría vigente contiene 22,504 clips sin positivos en ninguna de las 42 etiquetas y 227
 clips `out_of_scope_foreground`. Por tanto, para el experimento principal existen 22,731 clips
 sin positivos entre sus 31 etiquetas. Esta última definición es la que debe utilizar cualquier
-componente que seleccione ejemplos positivos o negativos respecto de la taxonomía activa.
+componente que seleccione ejemplos positivos o negativos respecto de la taxonomía activa. La
+desagregación y sus implicaciones se documentan en
+[`dataset-audit.md`](dataset-audit.md#clips-sin-positivos-en-la-taxonomía-activa).
 
 ## Proporciones de las particiones
 
