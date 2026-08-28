@@ -36,6 +36,6 @@ pipeline; todavía no ejecutan entrenamiento ni evaluación.
 - `splits/`: particiones por grabación, pequeñas y versionables.
 - `src/anuraset_dl/`: código fuente reutilizable.
 - `notebooks/`: análisis exploratorio y visualización.
-- `docs/`: documentación metodológica y del paper.
+- `docs/`: documentación metodológica y técnica; véase [`docs/README.md`](docs/README.md).
 - `tests/`: pruebas automáticas.
 - `outputs/`: bancos de filtros, checkpoints, métricas y figuras generadas.
