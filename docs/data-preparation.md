@@ -66,6 +66,11 @@ selección se aplica únicamente a las columnas objetivo de cada experimento:
 Los clips que contienen positivos únicamente en etiquetas excluidas se contabilizan como
 `out_of_scope_foreground`. No se asume que representen silencio ni fondo puro.
 
+La auditoría vigente contiene 22,504 clips sin positivos en ninguna de las 42 etiquetas y 227
+clips `out_of_scope_foreground`. Por tanto, para el experimento principal existen 22,731 clips
+sin positivos entre sus 31 etiquetas. Esta última definición es la que debe utilizar cualquier
+componente que seleccione ejemplos positivos o negativos respecto de la taxonomía activa.
+
 ## Proporciones de las particiones
 
 La proporción global objetivo es 80 % para entrenamiento, 10 % para validación y 10 % para
@@ -111,11 +116,13 @@ El generador utiliza la semilla `42` y produce los siguientes archivos versionab
 splits/train.csv
 splits/validation.csv
 splits/test.csv
+splits/report.json
 ```
 
 Cada manifiesto incluye como mínimo `filename` y `recording_id`. Las columnas de etiquetas no se
-duplican: se leen desde `dataset/train.csv`. El reporte de generación debe registrar una huella
-SHA-256 del CSV utilizado para vincular los manifiestos con la versión local de los metadatos.
+duplican: se leen desde `dataset/train.csv`. `splits/report.json` es un reporte JSON versionable y
+debe registrar una huella SHA-256 del CSV utilizado para vincular los manifiestos con la versión
+local de los metadatos.
 
 ## Validaciones obligatorias
 

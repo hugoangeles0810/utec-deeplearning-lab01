@@ -88,6 +88,10 @@ def validate_config(config: dict[str, Any]) -> None:
         _require_fields(features, ("n_mels", "f_min", "f_max"), "features")
     elif feature_type == "fbrs":
         _require_fields(features, _FBRS_FIELDS, "features")
+        if features["fit_subset"] not in {"active_positive_training", "all_training"}:
+            raise ValueError(
+                "features.fit_subset debe ser active_positive_training o all_training"
+            )
     else:
         raise ValueError(f"Tipo de representación no reconocido: {feature_type}")
 
@@ -97,7 +101,15 @@ def validate_config(config: dict[str, Any]) -> None:
         raise ValueError("La tarea multietiqueta requiere training.loss=bce_with_logits")
 
     evaluation = _require_mapping(config, "evaluation")
-    _require_fields(evaluation, ("threshold_strategy", "metrics"), "evaluation")
+    _require_fields(
+        evaluation,
+        ("threshold_strategy", "zero_positive_class_policy", "metrics"),
+        "evaluation",
+    )
+    if evaluation["zero_positive_class_policy"] != "error":
+        raise ValueError(
+            "Las clases principales sin positivos deben invalidar la evaluación"
+        )
 
 
 def num_outputs(config: dict[str, Any]) -> int:

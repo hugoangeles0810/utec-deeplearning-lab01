@@ -1,4 +1,4 @@
-experiment: dlognet_fbrs
+experiment: cnn_fbrs
 seed: 42
 
 data:
@@ -34,7 +34,7 @@ features:
   filter_shape: triangular
 
 model:
-  name: dlognet
+  name: cnn
 
 training:
   batch_size: 32

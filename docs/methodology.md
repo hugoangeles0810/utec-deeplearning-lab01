@@ -11,8 +11,8 @@ del artículo *"Towards accurate bird sound recognition through multi-scale text
 
 - **FBRS**, una representación espectrográfica basada en paquetes wavelet y selección de
   subbandas guiada por energía;
-- **DLoGNet**, una CNN cuyos núcleos se construyen con filtros Laplacian-of-Gaussian y parámetros
-  aprendibles de orientación `θ` y escala `σ`.
+- **DLoGNet**, una CNN que sustituye parte de sus núcleos genéricos por filtros
+  Laplacian-of-Gaussian con parámetros aprendibles de orientación `θ` y escala `σ`.
 
 El objetivo no es reproducir los resultados del artículo. El dominio, las etiquetas y las
 características del audio son diferentes, de modo que las decisiones del artículo se consideran
@@ -33,7 +33,9 @@ del CSV local realizada el 27 de agosto de 2026 produjo el siguiente estado:
 | Especies con positivos observados | 40 |
 | Especies del experimento principal | 31 |
 | Máximo de especies por clip | 8 |
-| Filas sin etiquetas positivas | 22,504 (36.185 %) |
+| Filas sin positivos en las 42 etiquetas originales | 22,504 (36.185 %) |
+| Filas sin positivos en las 31 etiquetas principales | 22,731 (36.550 %) |
+| Filas con positivos solo en etiquetas excluidas | 227 |
 
 Los segmentos se encuentran en `dataset/train/*.wav` y siguen el patrón
 `INCT<site>_<date>_<time>_<start>_<end>.wav`. `dataset/train.csv` contiene `filename` y las
@@ -47,7 +49,9 @@ tratamiento de clips con etiquetas fuera de alcance se definen en
 [`data-preparation.md`](data-preparation.md).
 
 Las filas sin positivos en la taxonomía activa se conservan como ejemplos totalmente negativos
-para esa taxonomía. No se asume que representen fondo puro y no se añade una clase de fondo.
+para esa taxonomía. Esto incluye las 22,504 filas sin ningún positivo original y las 227 filas
+con positivos únicamente en etiquetas excluidas. No se asume que representen fondo puro y no se
+añade una clase de fondo.
 
 Como el conjunto de datos no está versionado, estas cantidades deben volver a auditarse si cambia
 `dataset/train.csv`. Una variación no debe corregirse únicamente en este documento: también se
@@ -59,7 +63,7 @@ deben revisar las configuraciones, particiones y pruebas que dependan de ella.
 2. Crear particiones agrupadas por grabación según [`data-preparation.md`](data-preparation.md)
    y guardar sus manifiestos versionables en `splits/`.
 3. Ajustar cualquier preprocesamiento usando únicamente entrenamiento.
-4. Entrenar los modelos de referencia y DLoGNet.
+4. Entrenar la matriz mínima de comparación formada por CNN y DLoGNet con Mel y FBRS.
 5. Seleccionar umbrales con validación.
 6. Evaluar una sola vez sobre prueba.
 
@@ -100,9 +104,12 @@ tarea es multietiqueta y contiene una proporción elevada de ejemplos totalmente
 
 Los umbrales de decisión se seleccionan por clase maximizando F1 sobre validación, según
 `evaluation.threshold_strategy` en la configuración. El cálculo de average precision se realiza
-sobre probabilidades o puntuaciones continuas y no depende de esos umbrales. Antes del experimento
-final debe quedar documentado cómo se tratan, en cada partición, las clases sin positivos al
-calcular métricas agregadas.
+sobre probabilidades o puntuaciones continuas y no depende de esos umbrales. Las restricciones de
+las particiones garantizan positivos de cada etiqueta principal en validación y prueba. Si una
+clase principal no tiene positivos en alguna de esas particiones, la evaluación debe detenerse y
+reportar que los manifiestos son inválidos; no debe excluir silenciosamente esa clase de las
+métricas macro o de mAP. Esta política se declara mediante
+`evaluation.zero_positive_class_policy: error`.
 
 ## Adaptación de FBRS y DLoGNet
 
@@ -125,4 +132,5 @@ formulación multietiqueta de este documento, no el clasificador multiclase del 
 El resultado de exactitud publicado por el artículo no es un objetivo comparable: corresponde a
 otro dominio, otra definición de tarea y otra métrica. Las comparaciones del proyecto deben
 realizarse entre modelos entrenados con las mismas particiones y el mismo protocolo de
-evaluación.
+evaluación. Como mínimo se evalúa la matriz factorial CNN/DLoGNet × Mel/FBRS para no atribuir a la
+representación un cambio que también pueda deberse a la arquitectura, o viceversa.

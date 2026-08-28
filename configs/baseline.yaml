@@ -39,4 +39,5 @@ training:
 
 evaluation:
   threshold_strategy: per_class_validation_f1
+  zero_positive_class_policy: error
   metrics: [precision, recall, f1, map]

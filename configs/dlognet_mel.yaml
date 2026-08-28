@@ -1,4 +1,4 @@
-experiment: dlognet_fbrs
+experiment: dlognet_mel
 seed: 42
 
 data:
@@ -16,22 +16,17 @@ data:
   zero_label_policy: keep_as_all_negative
 
 features:
-  type: fbrs
+  type: mel
   pre_emphasis: 0.97
   window: hamming
   n_fft: 1024
   hop_length: 256
   center: false
   power: 2.0
+  n_mels: 128
+  f_min: 0
+  f_max: 11025
   log_epsilon: 1.0e-10
-  wavelet: db16
-  level: 8
-  bank_scope: corpus
-  fit_subset: active_positive_training
-  energy_normalization: per_level
-  band_selection: target_count
-  target_bands: 128
-  filter_shape: triangular
 
 model:
   name: dlognet

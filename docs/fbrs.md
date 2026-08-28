@@ -184,7 +184,7 @@ anuros. La distribución frecuencial debe estimarse con los datos de entrenamien
 | Wavelet | `db16` |
 | Nivel | `8` |
 | Alcance del banco | Un banco para el corpus |
-| Subconjunto de ajuste | Ejemplos positivos de entrenamiento |
+| Subconjunto de ajuste | Ejemplos de entrenamiento positivos en la taxonomía activa |
 | Normalización de energía | Por nivel |
 | Regla de selección | Número objetivo de bandas |
 | Número objetivo | 128 bandas |
@@ -220,13 +220,16 @@ No debe utilizarse información de validación o prueba para ajustar el banco.
 
 ### Uso de ejemplos positivos
 
-El banco se ajusta inicialmente con `positive_training`, es decir, con clips de entrenamiento
-que contienen al menos una etiqueta positiva. Los clips totalmente negativos se conservan para
-entrenar el clasificador, pero no determinan la partición inicial del banco.
+El banco se ajusta inicialmente con `active_positive_training`, es decir, con clips de
+entrenamiento que contienen al menos una etiqueta positiva en la taxonomía activa del
+experimento. Para el experimento principal solo se consideran las 31 etiquetas principales: un
+clip con positivos únicamente en etiquetas excluidas no participa en el ajuste del banco. Los
+clips totalmente negativos para la taxonomía activa se conservan para entrenar el clasificador,
+pero no determinan la partición inicial del banco.
 
-Esta decisión evita que la gran proporción de filas sin etiquetas positivas domine el criterio
-energético. No implica que esos clips sean fondo puro. Su efecto debe comprobarse frente a una
-ablación que ajuste el banco con todo entrenamiento.
+Esta decisión evita que la gran proporción de filas sin positivos en la taxonomía activa domine
+el criterio energético. No implica que esos clips sean fondo puro. Su efecto debe comprobarse
+frente a una ablación que ajuste el banco con todo entrenamiento.
 
 ### Número objetivo de bandas
 

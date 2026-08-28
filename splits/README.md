@@ -6,7 +6,8 @@ Este directorio contiene los manifiestos versionables de entrenamiento, validaci
 splits/
 ├── train.csv
 ├── validation.csv
-└── test.csv
+├── test.csv
+└── report.json
 ```
 
 Cada manifiesto debe incluir, como mínimo, las columnas `filename` y `recording_id`. El
@@ -22,6 +23,6 @@ debe implementarse según la política ya definida en
 con cobertura mínima por etiqueta principal y semilla `42`. Cuando se generen, deben
 versionarse para que todos los experimentos utilicen exactamente la misma separación.
 
-Los manifiestos no duplican las columnas de etiquetas de `dataset/train.csv`. El reporte de
-generación debe conservar la huella SHA-256 del archivo de metadatos utilizado y las
-verificaciones exigidas por la política de preparación de datos.
+Los manifiestos no duplican las columnas de etiquetas de `dataset/train.csv`. El archivo
+versionable `splits/report.json` debe conservar la huella SHA-256 del archivo de metadatos
+utilizado y las verificaciones exigidas por la política de preparación de datos.

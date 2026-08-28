@@ -174,5 +174,5 @@ descenso por gradiente. La explicación pasa así de ser únicamente *post hoc* 
 modelo.
 
 La segunda lección es que representación y arquitectura deben evaluarse como factores separados
-y también en conjunto. Para este proyecto se requieren ablaciones que comparen, con las mismas
-particiones y el mismo protocolo, al menos una CNN con Mel y DLoGNet con FBRS.
+y también en conjunto. Para este proyecto se requiere comparar, con las mismas particiones y el
+mismo protocolo, la matriz factorial CNN/DLoGNet × Mel/FBRS.
