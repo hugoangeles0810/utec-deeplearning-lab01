@@ -15,7 +15,7 @@ Antes de modificar el proyecto:
 3. Consultar la documentación específica de la tarea:
    - `docs/paper-summary.md`: descripción del paper de referencia; no define por sí solo las
      decisiones de este proyecto.
-   - `docs/fbrs-explained.md`: fundamentos, adaptación y decisiones de FBRS.
+   - `docs/fbrs.md`: fundamentos, adaptación y decisiones de FBRS.
    - `docs/experiments.md`: requisitos y estado de los experimentos.
    - `splits/README.md`: contrato de las particiones del dataset.
 4. Revisar la configuración aplicable en `configs/` antes de cambiar código o ejecutar un
