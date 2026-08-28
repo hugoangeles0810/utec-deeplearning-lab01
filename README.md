@@ -5,9 +5,9 @@ multietiqueta de anuros sobre grabaciones con formato AnuraSet.
 
 ## Estado
 
-El repositorio contiene el esqueleto reproducible del proyecto. La implementación de FBRS,
-DLoGNet, entrenamiento y evaluación se incorporará progresivamente dentro de
-`src/anuraset_dl/`.
+El repositorio contiene la auditoría del corpus y las particiones reproducibles por grabación.
+La implementación de FBRS, DLoGNet, entrenamiento y evaluación se incorporará progresivamente
+dentro de `src/anuraset_dl/`.
 
 ## Preparación del entorno
 
@@ -22,12 +22,14 @@ uv sync --group dev
 ```bash
 uv run pytest
 uv run jupyter lab
+uv run python -m anuraset_dl.prepare_data --config configs/baseline.yaml
 uv run python -m anuraset_dl.train --config configs/dlognet_fbrs.yaml
 uv run python -m anuraset_dl.evaluate --config configs/dlognet_fbrs.yaml
 ```
 
-Los dos últimos comandos validan actualmente la configuración y muestran el estado del
-pipeline; todavía no ejecutan entrenamiento ni evaluación.
+El comando de preparación valida el CSV y todas las cabeceras de audio antes de reproducir los
+manifiestos. Los dos últimos comandos validan actualmente la configuración y muestran el estado
+del pipeline; todavía no ejecutan entrenamiento ni evaluación.
 
 ## Organización
 

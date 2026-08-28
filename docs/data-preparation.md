@@ -116,7 +116,15 @@ se ubican según las demás características que contengan.
 
 ## Reproducibilidad y manifiestos
 
-El generador utiliza la semilla `42` y produce los siguientes archivos versionables:
+El generador se ejecuta con:
+
+```bash
+uv run python -m anuraset_dl.prepare_data --config configs/baseline.yaml
+```
+
+La sección `preparation` de esa configuración declara la huella esperada de los metadatos, las
+proporciones, coberturas y etiquetas exploratorias. El generador utiliza la semilla `42` y
+produce los siguientes archivos versionables:
 
 ```text
 splits/train.csv
@@ -129,6 +137,15 @@ Cada manifiesto incluye como mínimo `filename` y `recording_id`. Las columnas d
 duplican: se leen desde `dataset/train.csv`. `splits/report.json` es un reporte JSON versionable y
 debe registrar una huella SHA-256 del CSV utilizado para vincular los manifiestos con la versión
 local de los metadatos.
+
+La asignación se resuelve mediante programación lineal entera mixta con SciPy/HiGHS. La cobertura
+principal y la pertenencia exclusiva de cada grabación son restricciones duras. Los criterios de
+asignación se optimizan lexicográficamente en el orden declarado anteriormente: cada óptimo se
+fija antes de resolver el criterio siguiente. Un desempate determinista dependiente de la semilla
+elige una única solución entre asignaciones equivalentes.
+
+La escritura ocurre de forma atómica después de validar la asignación completa. Una repetición
+idéntica no reescribe archivos; para reemplazar artefactos diferentes debe indicarse `--force`.
 
 ## Validaciones obligatorias
 

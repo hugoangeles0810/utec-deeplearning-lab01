@@ -1,0 +1,700 @@
+{
+  "config_sha256": "95e16ae3bed378642a754129b61b2c6e5d3db788aa0899635c6732b1c8b4295f",
+  "manifests_sha256": {
+    "test.csv": "92bb51c0c03ab51e3b106962e344a0a6bf53645d8edf404e196f99231fd96f2b",
+    "train.csv": "65fd87b3ce42de2b0df1320e47de695344a6970e3bcd42892b6c6288093224d4",
+    "validation.csv": "f0a325f2d7c1d5d19feb25d77c3603fb1b9d8f3efb93f2e8a3ce1e6e7b11da21"
+  },
+  "metadata": {
+    "clips": 62191,
+    "path": "dataset/train.csv",
+    "recordings": 1074,
+    "sha256": "38df5d408d9bf621cc11f78ed4cd766be63a8406512c1eb4d611d98e4486d276"
+  },
+  "optimizer": {
+    "objectives": {
+      "active_all_negative": 4,
+      "active_label_prevalence": 360,
+      "clips": 262,
+      "exploratory_coverage": 12,
+      "out_of_scope_foreground": 14,
+      "recordings": 0,
+      "sites": 36
+    },
+    "status": "optimal"
+  },
+  "policy": {
+    "active_labels": [
+      "SPHSUR",
+      "BOABIS",
+      "SCIPER",
+      "DENNAH",
+      "LEPLAT",
+      "RHIICT",
+      "BOALEP",
+      "BOAFAB",
+      "PHYCUV",
+      "DENMIN",
+      "ELABIC",
+      "BOAPRA",
+      "DENCRU",
+      "BOALUN",
+      "BOAALB",
+      "PHYMAR",
+      "PITAZU",
+      "PHYSAU",
+      "LEPFUS",
+      "DENNAN",
+      "PHYALB",
+      "LEPLAB",
+      "BOARAN",
+      "SCIFUV",
+      "LEPPOD",
+      "ELAMAT",
+      "PHYNAT",
+      "LEPNOT",
+      "ADEMAR",
+      "BOAALM",
+      "PHYDIS"
+    ],
+    "excluded_labels": [
+      "SCIRIZ",
+      "SCIALT",
+      "ADEDIP",
+      "DENELE",
+      "RHISCI",
+      "AMEPIC",
+      "LEPELE",
+      "RHIORN",
+      "LEPFLA",
+      "SCIFUS",
+      "SCINAS"
+    ],
+    "exploratory_labels": [
+      "SCIRIZ",
+      "SCIALT",
+      "ADEDIP",
+      "DENELE"
+    ],
+    "exploratory_minimum_positive_recordings": {
+      "test": 1,
+      "train": 1,
+      "validation": 1
+    },
+    "minimum_positive_recordings": {
+      "test": 2,
+      "train": 6,
+      "validation": 2
+    },
+    "proportions": {
+      "test": 0.1,
+      "train": 0.8,
+      "validation": 0.1
+    },
+    "seed": 42,
+    "split_order": [
+      "train",
+      "validation",
+      "test"
+    ]
+  },
+  "schema_version": 1,
+  "splits": {
+    "test": {
+      "active_all_negative_clips": 2273,
+      "clip_proportion": 0.09978935858886334,
+      "clips": 6206,
+      "labels": {
+        "ADEDIP": {
+          "positive_clips": 58,
+          "positive_recordings": 1
+        },
+        "ADEMAR": {
+          "positive_clips": 89,
+          "positive_recordings": 2
+        },
+        "AMEPIC": {
+          "positive_clips": 0,
+          "positive_recordings": 0
+        },
+        "BOAALB": {
+          "positive_clips": 275,
+          "positive_recordings": 13
+        },
+        "BOAALM": {
+          "positive_clips": 142,
+          "positive_recordings": 4
+        },
+        "BOABIS": {
+          "positive_clips": 1111,
+          "positive_recordings": 24
+        },
+        "BOAFAB": {
+          "positive_clips": 614,
+          "positive_recordings": 13
+        },
+        "BOALEP": {
+          "positive_clips": 48,
+          "positive_recordings": 3
+        },
+        "BOALUN": {
+          "positive_clips": 233,
+          "positive_recordings": 5
+        },
+        "BOAPRA": {
+          "positive_clips": 29,
+          "positive_recordings": 2
+        },
+        "BOARAN": {
+          "positive_clips": 96,
+          "positive_recordings": 4
+        },
+        "DENCRU": {
+          "positive_clips": 50,
+          "positive_recordings": 2
+        },
+        "DENELE": {
+          "positive_clips": 14,
+          "positive_recordings": 2
+        },
+        "DENMIN": {
+          "positive_clips": 615,
+          "positive_recordings": 17
+        },
+        "DENNAH": {
+          "positive_clips": 48,
+          "positive_recordings": 2
+        },
+        "DENNAN": {
+          "positive_clips": 286,
+          "positive_recordings": 10
+        },
+        "ELABIC": {
+          "positive_clips": 132,
+          "positive_recordings": 3
+        },
+        "ELAMAT": {
+          "positive_clips": 27,
+          "positive_recordings": 2
+        },
+        "LEPELE": {
+          "positive_clips": 0,
+          "positive_recordings": 0
+        },
+        "LEPFLA": {
+          "positive_clips": 3,
+          "positive_recordings": 1
+        },
+        "LEPFUS": {
+          "positive_clips": 169,
+          "positive_recordings": 3
+        },
+        "LEPLAB": {
+          "positive_clips": 116,
+          "positive_recordings": 2
+        },
+        "LEPLAT": {
+          "positive_clips": 566,
+          "positive_recordings": 13
+        },
+        "LEPNOT": {
+          "positive_clips": 138,
+          "positive_recordings": 3
+        },
+        "LEPPOD": {
+          "positive_clips": 541,
+          "positive_recordings": 12
+        },
+        "PHYALB": {
+          "positive_clips": 515,
+          "positive_recordings": 13
+        },
+        "PHYCUV": {
+          "positive_clips": 448,
+          "positive_recordings": 13
+        },
+        "PHYDIS": {
+          "positive_clips": 78,
+          "positive_recordings": 5
+        },
+        "PHYMAR": {
+          "positive_clips": 38,
+          "positive_recordings": 2
+        },
+        "PHYNAT": {
+          "positive_clips": 109,
+          "positive_recordings": 2
+        },
+        "PHYSAU": {
+          "positive_clips": 172,
+          "positive_recordings": 4
+        },
+        "PITAZU": {
+          "positive_clips": 479,
+          "positive_recordings": 12
+        },
+        "RHIICT": {
+          "positive_clips": 51,
+          "positive_recordings": 2
+        },
+        "RHIORN": {
+          "positive_clips": 0,
+          "positive_recordings": 0
+        },
+        "RHISCI": {
+          "positive_clips": 0,
+          "positive_recordings": 0
+        },
+        "SCIALT": {
+          "positive_clips": 58,
+          "positive_recordings": 1
+        },
+        "SCIFUS": {
+          "positive_clips": 0,
+          "positive_recordings": 0
+        },
+        "SCIFUV": {
+          "positive_clips": 361,
+          "positive_recordings": 7
+        },
+        "SCINAS": {
+          "positive_clips": 0,
+          "positive_recordings": 0
+        },
+        "SCIPER": {
+          "positive_clips": 408,
+          "positive_recordings": 9
+        },
+        "SCIRIZ": {
+          "positive_clips": 20,
+          "positive_recordings": 1
+        },
+        "SPHSUR": {
+          "positive_clips": 1419,
+          "positive_recordings": 26
+        }
+      },
+      "out_of_scope_foreground_clips": 23,
+      "recording_proportion": 0.09962756052141528,
+      "recordings": 107,
+      "sites": {
+        "17": {
+          "clips": 1392,
+          "recordings": 24
+        },
+        "20955": {
+          "clips": 1798,
+          "recordings": 31
+        },
+        "4": {
+          "clips": 1624,
+          "recordings": 28
+        },
+        "41": {
+          "clips": 1392,
+          "recordings": 24
+        }
+      }
+    },
+    "train": {
+      "active_all_negative_clips": 18185,
+      "clip_proportion": 0.8000836133845733,
+      "clips": 49758,
+      "labels": {
+        "ADEDIP": {
+          "positive_clips": 274,
+          "positive_recordings": 5
+        },
+        "ADEMAR": {
+          "positive_clips": 319,
+          "positive_recordings": 6
+        },
+        "AMEPIC": {
+          "positive_clips": 36,
+          "positive_recordings": 1
+        },
+        "BOAALB": {
+          "positive_clips": 3132,
+          "positive_recordings": 106
+        },
+        "BOAALM": {
+          "positive_clips": 1313,
+          "positive_recordings": 35
+        },
+        "BOABIS": {
+          "positive_clips": 8658,
+          "positive_recordings": 192
+        },
+        "BOAFAB": {
+          "positive_clips": 5122,
+          "positive_recordings": 102
+        },
+        "BOALEP": {
+          "positive_clips": 702,
+          "positive_recordings": 26
+        },
+        "BOALUN": {
+          "positive_clips": 1645,
+          "positive_recordings": 38
+        },
+        "BOAPRA": {
+          "positive_clips": 394,
+          "positive_recordings": 20
+        },
+        "BOARAN": {
+          "positive_clips": 1063,
+          "positive_recordings": 29
+        },
+        "DENCRU": {
+          "positive_clips": 512,
+          "positive_recordings": 18
+        },
+        "DENELE": {
+          "positive_clips": 94,
+          "positive_recordings": 4
+        },
+        "DENMIN": {
+          "positive_clips": 4861,
+          "positive_recordings": 140
+        },
+        "DENNAH": {
+          "positive_clips": 396,
+          "positive_recordings": 13
+        },
+        "DENNAN": {
+          "positive_clips": 3099,
+          "positive_recordings": 79
+        },
+        "ELABIC": {
+          "positive_clips": 957,
+          "positive_recordings": 24
+        },
+        "ELAMAT": {
+          "positive_clips": 269,
+          "positive_recordings": 16
+        },
+        "LEPELE": {
+          "positive_clips": 30,
+          "positive_recordings": 1
+        },
+        "LEPFLA": {
+          "positive_clips": 4,
+          "positive_recordings": 1
+        },
+        "LEPFUS": {
+          "positive_clips": 958,
+          "positive_recordings": 22
+        },
+        "LEPLAB": {
+          "positive_clips": 1040,
+          "positive_recordings": 19
+        },
+        "LEPLAT": {
+          "positive_clips": 4224,
+          "positive_recordings": 101
+        },
+        "LEPNOT": {
+          "positive_clips": 850,
+          "positive_recordings": 20
+        },
+        "LEPPOD": {
+          "positive_clips": 4956,
+          "positive_recordings": 100
+        },
+        "PHYALB": {
+          "positive_clips": 4237,
+          "positive_recordings": 107
+        },
+        "PHYCUV": {
+          "positive_clips": 3403,
+          "positive_recordings": 102
+        },
+        "PHYDIS": {
+          "positive_clips": 706,
+          "positive_recordings": 36
+        },
+        "PHYMAR": {
+          "positive_clips": 149,
+          "positive_recordings": 9
+        },
+        "PHYNAT": {
+          "positive_clips": 207,
+          "positive_recordings": 6
+        },
+        "PHYSAU": {
+          "positive_clips": 1158,
+          "positive_recordings": 31
+        },
+        "PITAZU": {
+          "positive_clips": 3997,
+          "positive_recordings": 100
+        },
+        "RHIICT": {
+          "positive_clips": 221,
+          "positive_recordings": 8
+        },
+        "RHIORN": {
+          "positive_clips": 21,
+          "positive_recordings": 2
+        },
+        "RHISCI": {
+          "positive_clips": 11,
+          "positive_recordings": 1
+        },
+        "SCIALT": {
+          "positive_clips": 116,
+          "positive_recordings": 2
+        },
+        "SCIFUS": {
+          "positive_clips": 0,
+          "positive_recordings": 0
+        },
+        "SCIFUV": {
+          "positive_clips": 2105,
+          "positive_recordings": 53
+        },
+        "SCINAS": {
+          "positive_clips": 0,
+          "positive_recordings": 0
+        },
+        "SCIPER": {
+          "positive_clips": 2979,
+          "positive_recordings": 72
+        },
+        "SCIRIZ": {
+          "positive_clips": 28,
+          "positive_recordings": 1
+        },
+        "SPHSUR": {
+          "positive_clips": 10510,
+          "positive_recordings": 205
+        }
+      },
+      "out_of_scope_foreground_clips": 182,
+      "recording_proportion": 0.7998137802607076,
+      "recordings": 859,
+      "sites": {
+        "17": {
+          "clips": 10962,
+          "recordings": 189
+        },
+        "20955": {
+          "clips": 14494,
+          "recordings": 251
+        },
+        "4": {
+          "clips": 12992,
+          "recordings": 224
+        },
+        "41": {
+          "clips": 11310,
+          "recordings": 195
+        }
+      }
+    },
+    "validation": {
+      "active_all_negative_clips": 2273,
+      "clip_proportion": 0.10012702802656333,
+      "clips": 6227,
+      "labels": {
+        "ADEDIP": {
+          "positive_clips": 58,
+          "positive_recordings": 1
+        },
+        "ADEMAR": {
+          "positive_clips": 112,
+          "positive_recordings": 2
+        },
+        "AMEPIC": {
+          "positive_clips": 32,
+          "positive_recordings": 1
+        },
+        "BOAALB": {
+          "positive_clips": 297,
+          "positive_recordings": 13
+        },
+        "BOAALM": {
+          "positive_clips": 146,
+          "positive_recordings": 4
+        },
+        "BOABIS": {
+          "positive_clips": 1119,
+          "positive_recordings": 24
+        },
+        "BOAFAB": {
+          "positive_clips": 702,
+          "positive_recordings": 13
+        },
+        "BOALEP": {
+          "positive_clips": 96,
+          "positive_recordings": 3
+        },
+        "BOALUN": {
+          "positive_clips": 182,
+          "positive_recordings": 5
+        },
+        "BOAPRA": {
+          "positive_clips": 57,
+          "positive_recordings": 3
+        },
+        "BOARAN": {
+          "positive_clips": 180,
+          "positive_recordings": 4
+        },
+        "DENCRU": {
+          "positive_clips": 40,
+          "positive_recordings": 2
+        },
+        "DENELE": {
+          "positive_clips": 41,
+          "positive_recordings": 1
+        },
+        "DENMIN": {
+          "positive_clips": 594,
+          "positive_recordings": 18
+        },
+        "DENNAH": {
+          "positive_clips": 23,
+          "positive_recordings": 2
+        },
+        "DENNAN": {
+          "positive_clips": 416,
+          "positive_recordings": 10
+        },
+        "ELABIC": {
+          "positive_clips": 125,
+          "positive_recordings": 3
+        },
+        "ELAMAT": {
+          "positive_clips": 99,
+          "positive_recordings": 2
+        },
+        "LEPELE": {
+          "positive_clips": 4,
+          "positive_recordings": 1
+        },
+        "LEPFLA": {
+          "positive_clips": 0,
+          "positive_recordings": 0
+        },
+        "LEPFUS": {
+          "positive_clips": 105,
+          "positive_recordings": 3
+        },
+        "LEPLAB": {
+          "positive_clips": 173,
+          "positive_recordings": 3
+        },
+        "LEPLAT": {
+          "positive_clips": 454,
+          "positive_recordings": 13
+        },
+        "LEPNOT": {
+          "positive_clips": 74,
+          "positive_recordings": 2
+        },
+        "LEPPOD": {
+          "positive_clips": 535,
+          "positive_recordings": 13
+        },
+        "PHYALB": {
+          "positive_clips": 622,
+          "positive_recordings": 13
+        },
+        "PHYCUV": {
+          "positive_clips": 389,
+          "positive_recordings": 13
+        },
+        "PHYDIS": {
+          "positive_clips": 113,
+          "positive_recordings": 4
+        },
+        "PHYMAR": {
+          "positive_clips": 13,
+          "positive_recordings": 2
+        },
+        "PHYNAT": {
+          "positive_clips": 94,
+          "positive_recordings": 2
+        },
+        "PHYSAU": {
+          "positive_clips": 149,
+          "positive_recordings": 4
+        },
+        "PITAZU": {
+          "positive_clips": 397,
+          "positive_recordings": 13
+        },
+        "RHIICT": {
+          "positive_clips": 38,
+          "positive_recordings": 2
+        },
+        "RHIORN": {
+          "positive_clips": 0,
+          "positive_recordings": 0
+        },
+        "RHISCI": {
+          "positive_clips": 0,
+          "positive_recordings": 0
+        },
+        "SCIALT": {
+          "positive_clips": 58,
+          "positive_recordings": 1
+        },
+        "SCIFUS": {
+          "positive_clips": 0,
+          "positive_recordings": 0
+        },
+        "SCIFUV": {
+          "positive_clips": 268,
+          "positive_recordings": 7
+        },
+        "SCINAS": {
+          "positive_clips": 0,
+          "positive_recordings": 0
+        },
+        "SCIPER": {
+          "positive_clips": 404,
+          "positive_recordings": 9
+        },
+        "SCIRIZ": {
+          "positive_clips": 25,
+          "positive_recordings": 1
+        },
+        "SPHSUR": {
+          "positive_clips": 1329,
+          "positive_recordings": 26
+        }
+      },
+      "out_of_scope_foreground_clips": 22,
+      "recording_proportion": 0.1005586592178771,
+      "recordings": 108,
+      "sites": {
+        "17": {
+          "clips": 1334,
+          "recordings": 23
+        },
+        "20955": {
+          "clips": 1819,
+          "recordings": 32
+        },
+        "4": {
+          "clips": 1624,
+          "recordings": 28
+        },
+        "41": {
+          "clips": 1450,
+          "recordings": 25
+        }
+      }
+    }
+  },
+  "validations": {
+    "audio_headers": true,
+    "each_clip_exactly_once": true,
+    "main_label_coverage": true,
+    "metadata_audio_correspondence": true,
+    "metadata_binary_and_complete": true,
+    "recording_disjointness": true
+  }
+}

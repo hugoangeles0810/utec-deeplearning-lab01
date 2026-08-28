@@ -41,3 +41,21 @@ evaluation:
   threshold_strategy: per_class_validation_f1
   zero_positive_class_policy: error
   metrics: [precision, recall, f1, map]
+
+preparation:
+  metadata_sha256: 38df5d408d9bf621cc11f78ed4cd766be63a8406512c1eb4d611d98e4486d276
+  proportions:
+    train: 0.8
+    validation: 0.1
+    test: 0.1
+  split_order: [train, validation, test]
+  minimum_positive_recordings:
+    train: 6
+    validation: 2
+    test: 2
+  exploratory_labels: [SCIRIZ, SCIALT, ADEDIP, DENELE]
+  exploratory_minimum_positive_recordings:
+    train: 1
+    validation: 1
+    test: 1
+  report: splits/report.json
