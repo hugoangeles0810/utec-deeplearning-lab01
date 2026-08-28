@@ -12,8 +12,20 @@ ROOT = Path(__file__).resolve().parents[1]
 def test_project_configs_are_valid(filename: str) -> None:
     config = load_config(ROOT / "configs" / filename)
     assert num_outputs(config) == config["data"]["num_labels"]
-    assert num_outputs(config) == 40
-    assert config["data"]["excluded_labels"] == ["SCIFUS", "SCINAS"]
+    assert num_outputs(config) == 31
+    assert config["data"]["excluded_labels"] == [
+        "SCIRIZ",
+        "SCIALT",
+        "ADEDIP",
+        "DENELE",
+        "RHISCI",
+        "AMEPIC",
+        "LEPELE",
+        "RHIORN",
+        "LEPFLA",
+        "SCIFUS",
+        "SCINAS",
+    ]
 
 
 def test_config_rejects_duplicated_output_count() -> None:

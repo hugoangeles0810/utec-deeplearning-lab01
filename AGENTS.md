@@ -13,6 +13,7 @@ Antes de modificar el proyecto:
 1. Leer `README.md` para conocer el alcance, la estructura y los comandos principales.
 2. Leer `docs/methodology.md`, fuente de verdad del protocolo del proyecto.
 3. Consultar la documentación específica de la tarea:
+   - `docs/data-preparation.md`: selección de etiquetas, particiones y verificaciones de datos.
    - `docs/paper-summary.md`: descripción del paper de referencia; no define por sí solo las
      decisiones de este proyecto.
    - `docs/fbrs.md`: fundamentos, adaptación y decisiones de FBRS.

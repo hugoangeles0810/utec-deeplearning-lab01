@@ -168,7 +168,8 @@ ablaciones cuando sea relevante.
 | Frecuencia de muestreo | 22,050 Hz |
 | Nyquist | 11,025 Hz |
 | Duración del clip | 3 s |
-| Etiquetas entrenables | 40 |
+| Etiquetas con positivos observados | 40 |
+| Etiquetas del experimento principal | 31 |
 | Tarea | Clasificación multietiqueta |
 
 El patrón energético de las aves reportado en el artículo no se transfiere automáticamente a

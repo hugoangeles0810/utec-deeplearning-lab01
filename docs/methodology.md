@@ -30,7 +30,8 @@ del CSV local realizada el 27 de agosto de 2026 produjo el siguiente estado:
 | Duración por clip | 3 s |
 | Audio | 22.05 kHz, mono, 16 bits |
 | Columnas de etiquetas | 42 |
-| Especies objetivo observadas | 40 |
+| Especies con positivos observados | 40 |
+| Especies del experimento principal | 31 |
 | Máximo de especies por clip | 8 |
 | Filas sin etiquetas positivas | 22,504 (36.185 %) |
 
@@ -38,10 +39,15 @@ Los segmentos se encuentran en `dataset/train/*.wav` y siguen el patrón
 `INCT<site>_<date>_<time>_<start>_<end>.wav`. `dataset/train.csv` contiene `filename` y las
 columnas multihot.
 
-La tarea es de clasificación multietiqueta. `SCIFUS` y `SCINAS` no tienen ejemplos positivos y
-se excluyen de la salida entrenable. Las filas sin etiquetas positivas se conservan como
-ejemplos totalmente negativos: no se asume que representen fondo puro y no se añade una clase
-de fondo.
+La tarea es de clasificación multietiqueta. La taxonomía principal contiene 31 especies con
+soporte en al menos 10 grabaciones independientes. Las etiquetas con menor soporte se reservan
+para experimentos exploratorios, nueva recolección o un protocolo específico de *few-shot
+learning*; `SCIFUS` y `SCINAS` no tienen ejemplos positivos. La selección completa y el
+tratamiento de clips con etiquetas fuera de alcance se definen en
+[`data-preparation.md`](data-preparation.md).
+
+Las filas sin positivos en la taxonomía activa se conservan como ejemplos totalmente negativos
+para esa taxonomía. No se asume que representen fondo puro y no se añade una clase de fondo.
 
 Como el conjunto de datos no está versionado, estas cantidades deben volver a auditarse si cambia
 `dataset/train.csv`. Una variación no debe corregirse únicamente en este documento: también se
@@ -49,9 +55,9 @@ deben revisar las configuraciones, particiones y pruebas que dependan de ella.
 
 ## Flujo previsto
 
-1. Auditar etiquetas y grabaciones.
-2. Crear particiones agrupadas por grabación y guardar sus manifiestos versionables en
-   `splits/`.
+1. Auditar etiquetas y grabaciones y aplicar la política de selección de etiquetas.
+2. Crear particiones agrupadas por grabación según [`data-preparation.md`](data-preparation.md)
+   y guardar sus manifiestos versionables en `splits/`.
 3. Ajustar cualquier preprocesamiento usando únicamente entrenamiento.
 4. Entrenar los modelos de referencia y DLoGNet.
 5. Seleccionar umbrales con validación.
@@ -59,9 +65,11 @@ deben revisar las configuraciones, particiones y pruebas que dependan de ella.
 
 ## Particiones y prevención de fugas
 
-Ningún segmento de una misma grabación puede aparecer en más de una partición. Los manifiestos
-de entrenamiento, validación y prueba deben almacenarse en `splits/` y seguir el contrato
-definido en `splits/README.md`.
+Ningún segmento de una misma grabación puede aparecer en más de una partición. La proporción
+objetivo es 80/10/10 y cada etiqueta principal debe conservar al menos 6 grabaciones positivas
+en entrenamiento, 2 en validación y 2 en prueba. La política completa se define en
+[`data-preparation.md`](data-preparation.md); los manifiestos deben almacenarse en `splits/` y
+seguir el contrato de [`splits/README.md`](../splits/README.md).
 
 Todo preprocesamiento aprendido, incluido el ajuste del banco FBRS, se estima exclusivamente a
 partir de entrenamiento. La selección de umbrales utiliza validación. La partición de prueba queda reservada para
@@ -69,7 +77,8 @@ la evaluación final.
 
 ## Fuente de verdad del número de clases
 
-`data.num_labels` es la fuente de verdad ejecutable para el número de salidas del clasificador.
+`data.num_labels` es la fuente de verdad ejecutable para el número de salidas del clasificador y
+vale `31` en los experimentos principales.
 Los modelos deben derivar su dimensión de salida desde ese valor; no se duplica en la sección
 `model` de las configuraciones. La definición y auditoría de las etiquetas se documentan en
 «Conjunto de datos y definición de la tarea».

@@ -10,8 +10,9 @@ data:
     test: splits/test.csv
   sample_rate: 22050
   clip_seconds: 3
-  num_labels: 40
-  excluded_labels: [SCIFUS, SCINAS]
+  num_labels: 31
+  excluded_labels:
+    [SCIRIZ, SCIALT, ADEDIP, DENELE, RHISCI, AMEPIC, LEPELE, RHIORN, LEPFLA, SCIFUS, SCINAS]
   zero_label_policy: keep_as_all_negative
 
 features:
