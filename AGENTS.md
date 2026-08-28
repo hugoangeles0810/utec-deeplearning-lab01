@@ -1,81 +1,86 @@
-# AGENTS.md
+# Guía para agentes
 
-## Project
+## Propósito
 
-UTEC Deep Learning — Lab 01.
+Este archivo contiene únicamente instrucciones operativas para trabajar en el repositorio.
+Las decisiones sobre el problema, los datos, la metodología, la arquitectura y los
+experimentos pertenecen a `docs/` y no deben duplicarse aquí.
 
-The goal is to **transfer the method of a paper to a different dataset**, not to reproduce
-the paper. The method comes from *"Towards accurate bird sound recognition through
-multi-scale texture-aware modeling"* (Qin & Huang, npj Acoustics 2025):
+## Lectura obligatoria
 
-- **FBRS** — wavelet-packet spectrogram with energy-guided sub-band selection.
-- **DLoGNet** — CNN whose kernels are Laplacian-of-Gaussian filters with learnable
-  orientation `θ` and scale `σ`.
+Antes de modificar el proyecto:
 
-Those two ideas are what we carry over. Everything else about the paper's setup —
-domain, species, labels, sample rate, clip length — is **different here** and must be
-re-derived rather than copied.
+1. Leer `README.md` para conocer el alcance, la estructura y los comandos principales.
+2. Leer `docs/methodology.md`, fuente de verdad del protocolo del proyecto.
+3. Consultar la documentación específica de la tarea:
+   - `docs/paper-summary.md`: descripción del paper de referencia; no define por sí solo las
+     decisiones de este proyecto.
+   - `docs/fbrs-explained.md`: fundamentos, adaptación y decisiones de FBRS.
+   - `docs/experiments.md`: requisitos y estado de los experimentos.
+   - `splits/README.md`: contrato de las particiones del dataset.
+4. Revisar la configuración aplicable en `configs/` antes de cambiar código o ejecutar un
+   experimento.
 
-## Dataset
+Si el código, una configuración y la documentación metodológica no coinciden, no resolver la
+discrepancia de forma silenciosa. Determinar cuál representa la decisión vigente y actualizar
+en la misma tarea todas las fuentes afectadas. Si no puede determinarse sin tomar una nueva
+decisión metodológica, solicitar confirmación.
 
-`dataset/` (git-ignored, not committed) holds **AnuraSet**-style anuran (frog) recordings:
+## Organización del trabajo
 
-| | Paper | This project |
-|---|---|---|
-| Domain | 8 bird species | **40 especies observadas de anuros** en 42 columnas (`SCIFUS` y `SCINAS` no tienen positivos) |
-| Task | single-label, softmax + cross-entropy | **multietiqueta**, hasta 8 especies por clip → sigmoid + BCE |
-| Audio | 32 kHz | **22.05 kHz**, mono, 16-bit |
-| Clips | 5 s | **3 s** |
-| Size | ~22.7k clips | **62,191 clips** |
+- Colocar la lógica reutilizable y definitiva en `src/anuraset_dl/`.
+- Usar `notebooks/` solo para exploración, análisis y visualización. Extraer a `src/` cualquier
+  lógica necesaria para reproducir el pipeline.
+- Añadir o actualizar pruebas en `tests/` cuando cambie el comportamiento del código.
+- Mantener las configuraciones versionables en `configs/` y las particiones reproducibles en
+  `splits/`.
+- Registrar decisiones metodológicas en `docs/methodology.md` o en el documento técnico
+  correspondiente; registrar la ejecución y los resultados en `docs/experiments.md`.
+- Guardar artefactos generados en `outputs/` según su categoría.
+- No incorporar audios, checkpoints ni otros binarios grandes a Git. Actualizar `.gitignore`
+  cuando aparezca una nueva clase de artefacto local.
+- Preservar cambios preexistentes del usuario y evitar modificaciones ajenas a la tarea.
+- No crear commits ni hacer `push` salvo petición explícita.
 
-- `dataset/train/*.wav` — 3-second segments, named `INCT<site>_<date>_<time>_<start>_<end>.wav`.
-- `dataset/train.csv` — `filename` + 42 columnas multihot; se excluyen `SCIFUS` y `SCINAS`
-  del clasificador porque no contienen ejemplos positivos.
-- **36% de las filas (22,504) no tienen etiquetas positivas.** Esto no demuestra por sí solo
-  que sean fondo puro. Se conservan como ejemplos totalmente negativos y no se crea una clase
-  de fondo separada.
+## Idioma y estilo documental
 
-## Adaptations this implies
+Todo contenido documental nuevo o modificado debe escribirse en español. Esto incluye Markdown,
+docstrings y comentarios narrativos, diagramas, tablas y reportes. Pueden conservarse en inglés
+los identificadores de código, nombres propios, títulos bibliográficos y términos técnicos cuya
+traducción reduzca la precisión. No traducir nombres de clases, columnas, rutas, funciones,
+variables ni APIs.
 
-- Classifier head and loss change: **sigmoid + BCE**, not softmax + cross-entropy.
-- Metrics change: per-class / macro **precision, recall, F1 and mAP** — plain accuracy is
-  meaningless for multi-label with a dominant empty class.
-- FBRS band layout must be recomputed over the Nyquist interval:
-  `Δf_min = (f_s / 2) / 2^L = f_s / 2^(L+1)` at **22.05 kHz**, so the paper's `L = 8`
-  is a starting point, not a settled choice.
-- Input size, pooling stack and receptive fields follow from 3-second clips, not 5.
-- **The paper's 91.18% is not a comparable target.** Different task, dataset and metric.
+Cuando mejore realmente la claridad, pueden utilizarse diagramas Mermaid y fórmulas LaTeX
+incrustadas en Markdown.
 
-## Layout
+## Entorno y verificaciones
 
-- `docs/paper-summary.md` — detailed summary of the paper: equations, architecture, results, limitations.
-- `docs/fbrs-explained.md` — deep-dive on **Contribution 1 (FBRS)**: intuition, wavelet-packet
-  background, the algorithm from Figs. 11–12, the math, plus our adaptation decisions
-  (Part II). Read this before implementing the input pipeline.
-- `src/anuraset_dl/` — código fuente reutilizable del proyecto.
-- `notebooks/` — análisis exploratorios; la lógica definitiva debe vivir en `src/`.
-- `configs/` — configuración versionada de los experimentos.
-- `splits/` — particiones versionadas; ningún segmento de una misma grabación puede aparecer
-  en más de una partición.
-- `tests/` — pruebas unitarias de los componentes del pipeline.
-- `outputs/` — artefactos generados; checkpoints y resultados grandes no se versionan.
+El proyecto usa Python 3.12, PyTorch y `uv`.
 
-## Conventions
+Preparar el entorno:
 
-- Python 3.12, PyTorch.
-- **Idioma de la documentación:** todo documento nuevo y todo contenido documental generado
-  en adelante debe escribirse en **español**. Esto incluye archivos Markdown, explicaciones,
-  diagramas, tablas, comentarios narrativos y reportes del proyecto. Se pueden conservar en
-  inglés los identificadores de código, nombres propios, títulos bibliográficos y términos
-  técnicos cuando traducirlos reduzca la precisión. No se deben traducir nombres de clases,
-  columnas, rutas, funciones, variables ni APIs.
-- Keep large binaries (audio, checkpoints) out of git; add new ones to `.gitignore`.
-- Never commit or push unless asked.
-- Consider embebed  Mermaid and LaText in Markdown files for clarity in diagrams and Math.
+```bash
+uv sync --group dev
+```
 
-## Notes for agents
+Ejecutar las verificaciones generales:
 
-- Prefer reading `docs/paper-summary.md` first — it already contains the paper's equations,
-  hyperparameters and result tables.
-- When the summary and this file disagree on a number, **this file wins**: the summary
-  describes the paper, this file describes our setup.
+```bash
+uv run pytest
+uv run ruff check .
+```
+
+Durante el desarrollo pueden ejecutarse primero pruebas específicas, pero antes de dar por
+terminado un cambio de código deben ejecutarse las verificaciones generales. Si alguna no puede
+ejecutarse por una dependencia externa o un artefacto local ausente, reportarlo explícitamente.
+
+## Criterios de finalización
+
+Antes de entregar una tarea:
+
+1. Confirmar que el cambio respeta la documentación metodológica aplicable.
+2. Verificar que código, configuraciones, pruebas y documentación no se contradicen.
+3. Ejecutar las pruebas y el lint adecuados al alcance.
+4. Comprobar que no se añadieron datos o artefactos grandes al control de versiones.
+5. Resumir los archivos modificados, las verificaciones ejecutadas y cualquier limitación o
+   decisión pendiente.
