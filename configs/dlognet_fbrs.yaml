@@ -1,0 +1,46 @@
+experiment: dlognet_fbrs
+seed: 42
+
+data:
+  root: dataset
+  metadata: dataset/train.csv
+  splits:
+    train: splits/train.csv
+    validation: splits/validation.csv
+    test: splits/test.csv
+  sample_rate: 22050
+  clip_seconds: 3
+  num_labels: 40
+  excluded_labels: [SCIFUS, SCINAS]
+  zero_label_policy: keep_as_all_negative
+
+features:
+  type: fbrs
+  pre_emphasis: 0.97
+  window: hamming
+  n_fft: 1024
+  hop_length: 256
+  center: false
+  power: 2.0
+  log_epsilon: 1.0e-10
+  wavelet: db16
+  level: 8
+  bank_scope: corpus
+  fit_subset: positive_training
+  energy_normalization: per_level
+  band_selection: target_count
+  target_bands: 128
+  filter_shape: triangular
+
+model:
+  name: dlognet
+
+training:
+  batch_size: 32
+  epochs: 50
+  learning_rate: 0.0001
+  loss: bce_with_logits
+
+evaluation:
+  threshold_strategy: per_class_validation_f1
+  metrics: [precision, recall, f1, map]
