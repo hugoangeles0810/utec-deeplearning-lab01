@@ -5,9 +5,9 @@ multietiqueta de anuros sobre grabaciones con formato AnuraSet.
 
 ## Estado
 
-El repositorio contiene la auditoría del corpus, las particiones reproducibles por grabación, el
-baseline CNN + log-Mel y el pipeline CNN + FBRS. DLoGNet se incorporará progresivamente dentro
-de `src/anuraset_dl/`.
+El repositorio contiene la auditoría del corpus, las particiones reproducibles por grabación y
+los pipelines CNN/DLoGNet con representaciones log-Mel/FBRS. Las dos ejecuciones CNN están
+registradas; las ejecuciones completas de DLoGNet permanecen pendientes.
 
 ## Preparación del entorno
 
@@ -39,6 +39,18 @@ uv run python -m anuraset_dl.fbrs --config configs/cnn_fbrs.yaml
 uv run --group tracking python -m anuraset_dl.train --config configs/cnn_fbrs.yaml
 uv run --group tracking python -m anuraset_dl.evaluate --config configs/cnn_fbrs.yaml
 ```
+
+DLoGNet utiliza el mismo protocolo de datos, entrenamiento y evaluación:
+
+```bash
+uv run --group tracking python -m anuraset_dl.train --config configs/dlognet_mel.yaml
+uv run --group tracking python -m anuraset_dl.evaluate --config configs/dlognet_mel.yaml
+uv run --group tracking python -m anuraset_dl.train --config configs/dlognet_fbrs.yaml
+uv run --group tracking python -m anuraset_dl.evaluate --config configs/dlognet_fbrs.yaml
+```
+
+`dlognet_fbrs` reutiliza el banco congelado declarado en `features.bank_path`; no debe volver a
+ajustarse con validación o prueba.
 
 El ajuste se detiene si el banco ya existe; `--force` permite reemplazarlo de forma explícita.
 Entrenamiento y evaluación verifican la huella del banco congelado además de las huellas de los

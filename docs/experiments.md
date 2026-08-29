@@ -16,13 +16,27 @@ Cada experimento debe registrar como mínimo:
 |---|---|---|---|---|
 | `cnn_mel_baseline` | Mel | CNN | Ejecutado | F1 macro test 0.5070; mAP test 0.5570 |
 | `cnn_fbrs` | FBRS | CNN | Ejecutado | F1 macro test 0.4977; mAP test 0.5303 |
-| `dlognet_mel` | Mel | DLoGNet | Pendiente | — |
-| `dlognet_fbrs` | FBRS | DLoGNet | Pendiente | — |
+| `dlognet_mel` | Mel | DLoGNet | Pipeline implementado; ejecución pendiente | — |
+| `dlognet_fbrs` | FBRS | DLoGNet | Pipeline implementado; ejecución pendiente | — |
 
 Estos cuatro experimentos forman la matriz factorial mínima para separar el efecto de la
 representación del efecto de la arquitectura. Todas las celdas deben utilizar las mismas
 particiones y el mismo protocolo de entrenamiento y evaluación; solo deben variar los factores
 indicados por su fila.
+
+## Estado de DLoGNet
+
+El pipeline implementa kernels DLoG diferenciables con cuatro orientaciones y escala aprendible,
+cinco BDCM, conexión de identidad por concatenación y clasificador multietiqueta. Las pruebas
+comprueban respuesta DC nula, orientaciones distintas, gradientes finitos para `θ` y `σ`, forma de
+los bloques, serialización mediante checkpoint y ejecuciones sintéticas completas tanto con Mel
+como con un banco FBRS congelado. Las decisiones exactas de adaptación se registran en
+[`methodology.md`](methodology.md#adaptación-de-dlognet).
+
+Las ejecuciones de 50 épocas todavía no se han realizado. Debe ejecutarse primero
+`dlognet_mel` para medir el efecto de la arquitectura sin cambiar simultáneamente la
+representación y después `dlognet_fbrs`, reutilizando el banco ya ajustado únicamente con
+entrenamiento.
 
 ## Estado del baseline CNN + Mel
 

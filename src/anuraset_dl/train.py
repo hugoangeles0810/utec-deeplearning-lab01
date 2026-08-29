@@ -57,8 +57,6 @@ def _run_epoch(
 
 def train_experiment(config: dict[str, Any]) -> dict[str, Any]:
     """Entrena el experimento y persiste checkpoints ``best`` y ``last``."""
-    if config["model"]["name"] != "cnn":
-        raise NotImplementedError("El pipeline ejecutable actual corresponde al modelo CNN")
     set_reproducibility(int(config["seed"]))
     device = resolve_device(str(config["training"].get("device", "auto")))
     train_loader, labels = build_loader(config, "train", shuffle=True)

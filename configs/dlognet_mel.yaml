@@ -32,6 +32,13 @@ features:
 
 model:
   name: dlognet
+  channels: [64, 128, 128, 128, 64]
+  kernel_size: 7
+  initial_angles_degrees: [0, 45, 90, 135]
+  initial_sigma: 1.0
+  minimum_sigma: 0.3
+  classifier_hidden: 1024
+  dropout: 0.3
 
 training:
   batch_size: 32

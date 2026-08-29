@@ -90,8 +90,27 @@ def _synthetic_experiment(tmp_path: Path) -> dict:
     }
 
 
-def test_training_and_evaluation_complete_end_to_end(tmp_path: Path) -> None:
+def _select_model(config: dict, model_name: str) -> None:
+    config["experiment"] = f"synthetic_{model_name}_{config['features']['type']}"
+    if model_name == "dlognet":
+        config["model"] = {
+            "name": "dlognet",
+            "channels": [4, 8],
+            "kernel_size": 5,
+            "initial_angles_degrees": [0, 45, 90, 135],
+            "initial_sigma": 1.0,
+            "minimum_sigma": 0.3,
+            "classifier_hidden": 16,
+            "dropout": 0.0,
+        }
+
+
+@pytest.mark.parametrize("model_name", ["cnn", "dlognet"])
+def test_training_and_evaluation_complete_end_to_end(
+    tmp_path: Path, model_name: str
+) -> None:
     config = _synthetic_experiment(tmp_path)
+    _select_model(config, model_name)
 
     training = train_experiment(config)
     evaluation = evaluate_experiment(config, training["best_checkpoint"])
@@ -109,9 +128,11 @@ def test_training_and_evaluation_complete_end_to_end(tmp_path: Path) -> None:
     assert set(evaluation["test"]) == {"macro", "per_class"}
 
 
-def test_cnn_fbrs_completes_end_to_end_with_a_frozen_bank(tmp_path: Path) -> None:
+@pytest.mark.parametrize("model_name", ["cnn", "dlognet"])
+def test_fbrs_completes_end_to_end_with_a_frozen_bank(
+    tmp_path: Path, model_name: str
+) -> None:
     config = _synthetic_experiment(tmp_path)
-    config["experiment"] = "synthetic_cnn_fbrs"
     config["features"] = {
         "type": "fbrs",
         "pre_emphasis": 0.97,
@@ -132,6 +153,7 @@ def test_cnn_fbrs_completes_end_to_end_with_a_frozen_bank(tmp_path: Path) -> Non
         "filter_normalization": "peak",
         "bank_path": str(tmp_path / "filterbanks" / "fbrs.pt"),
     }
+    _select_model(config, model_name)
     fitted = fit_fbrs_bank(config)
 
     training = train_experiment(config)

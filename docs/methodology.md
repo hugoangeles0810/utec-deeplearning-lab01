@@ -175,9 +175,35 @@ validación. Los parámetros vigentes de la etapa inicial y del banco se declara
 `configs/dlognet_fbrs.yaml`; su justificación, las decisiones pendientes y las alternativas de
 ablación se describen en `docs/fbrs.md`.
 
-La forma de entrada, el apilamiento de agrupamiento y los campos receptivos de DLoGNet deben
-derivarse de las dimensiones producidas por el flujo de este proyecto. La salida y la pérdida siguen la
-formulación multietiqueta de este documento, no el clasificador multiclase del artículo.
+### Adaptación de DLoGNet
+
+Las representaciones Mel y FBRS producen entradas de un canal con 128 bandas y 255 marcos para
+los clips de tres segundos. DLoGNet conserva las cinco etapas del artículo, con canales
+`[64, 128, 128, 128, 64]`. Cada etapa aplica un BDCM, `BatchNorm2d`, ReLU y agrupamiento máximo
+2×2. Las dimensiones espaciales pasan por `128×255`, `64×127`, `32×63`, `16×31`, `8×15` y
+`4×7`; por tanto, las cinco reducciones son válidas sin redimensionar ni rellenar la entrada.
+Después se utiliza agrupamiento promedio adaptativo global, una capa oculta de 1024 unidades,
+ReLU, *dropout* de 0.3 y una capa lineal de 31 logits.
+
+Cada BDCM contiene cuatro filtros DLoG *depthwise* inicializados en 0°, 45°, 90° y 135°. Un mismo
+kernel físico se comparte entre los canales de una rama para conservar la parametrización
+interpretable. Las cuatro respuestas y la entrada sin filtrar se concatenan por canales; una
+convolución aprendible 3×3 realiza la fusión. Se adopta concatenación porque la descripción del
+artículo la denomina conexión de salto y las dimensiones publicadas no permiten sumar directamente
+los cuatro grupos direccionales con la entrada.
+
+El kernel DLoG se calcula como la segunda derivada direccional de una Gaussiana discreta 7×7.
+Los ángulos `θ` y una escala `σ` por BDCM reciben gradientes. `σ` se inicializa en 1.0 y se
+parametriza como `softplus(raw_sigma) + 0.3` para impedir escalas nulas o negativas. Después de
+discretizar se resta la media de cada kernel para conservar respuesta DC nula y se normaliza por
+su norma L1, lo que evita que un cambio de escala altere la magnitud únicamente por el
+truncamiento. El artículo no fija tamaño, normalización ni cota de escala; estos valores son
+decisiones reproducibles de la adaptación y deben tratarse como hiperparámetros en una ablación.
+
+La salida son logits independientes y la pérdida continúa siendo `BCEWithLogitsLoss`. No se
+aplican el *softmax* ni la entropía cruzada monoclase del artículo. Las dos configuraciones
+DLoGNet solo difieren en la representación de entrada y derivan las 31 salidas de
+`data.num_labels`.
 
 El resultado de exactitud publicado por el artículo no es un objetivo comparable: corresponde a
 otro dominio, otra definición de tarea y otra métrica. Las comparaciones del proyecto deben

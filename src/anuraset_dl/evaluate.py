@@ -43,8 +43,6 @@ def evaluate_experiment(
     config: dict[str, Any], checkpoint_path: str | Path | None = None
 ) -> dict[str, Any]:
     """Ajusta umbrales en validación y aplica el protocolo congelado a test."""
-    if config["model"]["name"] != "cnn":
-        raise NotImplementedError("El pipeline ejecutable actual corresponde al modelo CNN")
     set_reproducibility(int(config["seed"]))
     device = resolve_device(str(config["training"].get("device", "auto")))
     validation_loader, labels = build_loader(config, "validation")
