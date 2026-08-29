@@ -32,6 +32,8 @@ features:
   band_selection: target_count
   target_bands: 128
   filter_shape: triangular
+  filter_normalization: peak
+  bank_path: outputs/filterbanks/fbrs_db16_l8_b128.pt
 
 model:
   name: dlognet

@@ -8,6 +8,7 @@ import pytest
 import soundfile as sf
 
 from anuraset_dl.evaluate import evaluate_experiment
+from anuraset_dl.fbrs import fit_fbrs_bank
 from anuraset_dl.runtime import config_fingerprint, sha256_file
 from anuraset_dl.train import train_experiment
 
@@ -106,6 +107,40 @@ def test_training_and_evaluation_complete_end_to_end(tmp_path: Path) -> None:
     assert set(evaluation["thresholds"]) == {"frog_a", "frog_b"}
     assert set(evaluation["validation"]) == {"macro", "per_class"}
     assert set(evaluation["test"]) == {"macro", "per_class"}
+
+
+def test_cnn_fbrs_completes_end_to_end_with_a_frozen_bank(tmp_path: Path) -> None:
+    config = _synthetic_experiment(tmp_path)
+    config["experiment"] = "synthetic_cnn_fbrs"
+    config["features"] = {
+        "type": "fbrs",
+        "pre_emphasis": 0.97,
+        "window": "hamming",
+        "n_fft": 128,
+        "hop_length": 64,
+        "center": False,
+        "power": 2.0,
+        "log_epsilon": 1e-10,
+        "wavelet": "db4",
+        "level": 4,
+        "bank_scope": "corpus",
+        "fit_subset": "active_positive_training",
+        "energy_normalization": "per_level",
+        "band_selection": "target_count",
+        "target_bands": 8,
+        "filter_shape": "triangular",
+        "filter_normalization": "peak",
+        "bank_path": str(tmp_path / "filterbanks" / "fbrs.pt"),
+    }
+    fitted = fit_fbrs_bank(config)
+
+    training = train_experiment(config)
+    evaluation = evaluate_experiment(config, training["best_checkpoint"])
+
+    assert fitted["fit_examples"] == 4
+    assert Path(training["best_checkpoint"]).is_file()
+    assert Path(evaluation["metrics_path"]).is_file()
+    assert evaluation["data_fingerprints"]["feature_artifact"]["sha256"] == fitted["sha256"]
 
 
 def test_runtime_options_do_not_change_semantic_fingerprint(tmp_path: Path) -> None:

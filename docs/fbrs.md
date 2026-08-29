@@ -189,6 +189,8 @@ anuros. La distribución frecuencial debe estimarse con los datos de entrenamien
 | Regla de selección | Número objetivo de bandas |
 | Número objetivo | 128 bandas |
 | Forma de filtro | Triangular |
+| Normalización del filtro | Pico unitario |
+| Persistencia | `outputs/filterbanks/fbrs_db16_l8_b128.pt` |
 | FFT | 1024 muestras |
 | Salto | 256 muestras |
 | Centrado | Desactivado |
@@ -238,22 +240,26 @@ número fijo y reproducible de bandas. El algoritmo debe fusionar pares válidos
 128 bandas o el estado válido más cercano si la estructura diádica impide obtener exactamente
 ese número.
 
-La política de desempate y la respuesta cuando no pueda alcanzarse exactamente el objetivo deben
-quedar definidas en código y cubiertas por pruebas.
+La implementación parte de las `2**L` hojas y fusiona en cada paso el par de hermanos activo con
+menor suma de energía. Los empates se resuelven por orden frecuencial, de menor a mayor. Cada
+fusión reduce el número de bandas en uno, por lo que cualquier objetivo entero entre 1 y `2**L`
+es alcanzable exactamente; los valores fuera de ese intervalo son inválidos.
 
 ### Forma triangular
 
-Cada banda final se convierte en una fila triangular del banco de filtros sobre los bins de la
-FFT. Las bandas adyacentes deben compartir sus bordes de manera consistente y cada fila debe
-normalizarse según una regla explícita.
+Cada banda final se representa por su frecuencia central. Su fila triangular alcanza uno en ese
+centro, se extiende hasta los centros de las bandas adyacentes y se limita al intervalo de
+Nyquist en los extremos. Las filas se normalizan a pico unitario, sin normalización de área.
+Esta construcción mantiene soporte aun cuando un límite diádico coincida exactamente con un bin
+de la FFT.
 
 Un nivel demasiado alto respecto de `n_fft` puede generar bandas más estrechas que la separación
 entre bins. La implementación debe impedir filtros vacíos o advertir cuando varias bandas se
 proyecten sobre los mismos bins.
 
-## Esquema de implementación
+## Implementación
 
-La lógica definitiva debe residir en `src/anuraset_dl/`. Una separación útil es:
+La lógica definitiva reside en `src/anuraset_dl/fbrs.py` y sigue estas etapas:
 
 1. extracción de energías wavelet sobre entrenamiento;
 2. agregación de energía por nodo;
@@ -262,7 +268,7 @@ La lógica definitiva debe residir en `src/anuraset_dl/`. Una separación útil 
 5. transformación de cada clip mediante el banco congelado;
 6. persistencia del banco y de sus metadatos en `outputs/`.
 
-Cada artefacto del banco debería registrar al menos:
+Cada artefacto del banco registra:
 
 - frecuencia de muestreo;
 - wavelet y nivel;
@@ -272,6 +278,18 @@ Cada artefacto del banco debería registrar al menos:
 - forma y normalización de filtros;
 - `n_fft`, salto, ventana y preénfasis;
 - versión de la configuración o huella de sus parámetros.
+
+El ajuste se ejecuta explícitamente antes del entrenamiento:
+
+```bash
+uv run python -m anuraset_dl.fbrs --config configs/cnn_fbrs.yaml
+```
+
+El comando lee audio únicamente del manifiesto de entrenamiento y, con
+`active_positive_training`, descarta antes de cargar audio cualquier clip totalmente negativo
+para la taxonomía activa. Sin `--force` no reemplaza un artefacto existente. El pipeline valida
+la huella del banco al entrenar y evaluar, de modo que validación y prueba siempre usan el banco
+congelado.
 
 ## Verificación requerida
 

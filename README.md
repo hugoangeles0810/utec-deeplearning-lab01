@@ -5,9 +5,9 @@ multietiqueta de anuros sobre grabaciones con formato AnuraSet.
 
 ## Estado
 
-El repositorio contiene la auditoría del corpus, las particiones reproducibles por grabación y
-un baseline CNN + log-Mel ejecutable de extremo a extremo. FBRS y DLoGNet se incorporarán
-progresivamente dentro de `src/anuraset_dl/`.
+El repositorio contiene la auditoría del corpus, las particiones reproducibles por grabación, el
+baseline CNN + log-Mel y el pipeline CNN + FBRS. DLoGNet se incorporará progresivamente dentro
+de `src/anuraset_dl/`.
 
 ## Preparación del entorno
 
@@ -30,6 +30,19 @@ uv run --group tracking python -m anuraset_dl.prepare_data --config configs/base
 uv run --group tracking python -m anuraset_dl.train --config configs/baseline.yaml
 uv run --group tracking python -m anuraset_dl.evaluate --config configs/baseline.yaml
 ```
+
+Para ajustar el banco FBRS únicamente sobre entrenamiento y ejecutar la comparación con la misma
+CNN:
+
+```bash
+uv run python -m anuraset_dl.fbrs --config configs/cnn_fbrs.yaml
+uv run --group tracking python -m anuraset_dl.train --config configs/cnn_fbrs.yaml
+uv run --group tracking python -m anuraset_dl.evaluate --config configs/cnn_fbrs.yaml
+```
+
+El ajuste se detiene si el banco ya existe; `--force` permite reemplazarlo de forma explícita.
+Entrenamiento y evaluación verifican la huella del banco congelado además de las huellas de los
+metadatos y manifiestos.
 
 El comando de preparación valida el CSV y todas las cabeceras de audio antes de reproducir los
 manifiestos. El entrenamiento guarda `best.pt`, `last.pt` y el historial bajo

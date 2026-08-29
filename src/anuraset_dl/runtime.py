@@ -20,7 +20,7 @@ from anuraset_dl.data import AnuraDataset
 
 
 def set_reproducibility(seed: int) -> None:
-    """Inicializa los generadores aleatorios usados por el baseline."""
+    """Inicializa los generadores aleatorios usados por los experimentos."""
     random.seed(seed)
     np.random.seed(seed)
     torch.manual_seed(seed)
@@ -114,13 +114,20 @@ def data_fingerprints(config: dict[str, Any]) -> dict[str, Any]:
     split_paths = {
         split: Path(path) for split, path in config["data"]["splits"].items()
     }
-    return {
+    fingerprints: dict[str, Any] = {
         "metadata": {"path": str(metadata_path), "sha256": sha256_file(metadata_path)},
         "splits": {
             split: {"path": str(path), "sha256": sha256_file(path)}
             for split, path in sorted(split_paths.items())
         },
     }
+    if config["features"]["type"] == "fbrs":
+        bank = Path(config["features"]["bank_path"])
+        fingerprints["feature_artifact"] = {
+            "path": str(bank),
+            "sha256": sha256_file(bank),
+        }
+    return fingerprints
 
 
 def atomic_torch_save(payload: dict[str, Any], path: str | Path) -> None:

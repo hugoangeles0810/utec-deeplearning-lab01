@@ -136,6 +136,18 @@ class LogMelSpectrogram(nn.Module):
         return torch.log(mel.clamp_min(self.log_epsilon))
 
 
+def build_transform(config: dict[str, Any]) -> nn.Module:
+    """Construye la representación configurada sin ajustar artefactos aprendidos."""
+    feature_type = config["features"]["type"]
+    if feature_type == "mel":
+        return LogMelSpectrogram(config)
+    if feature_type == "fbrs":
+        from anuraset_dl.fbrs import FBRSSpectrogram
+
+        return FBRSSpectrogram(config)
+    raise ValueError(f"Tipo de representación no reconocido: {feature_type}")
+
+
 class AnuraDataset(Dataset[tuple[Tensor, Tensor]]):
     """Une un manifiesto con los objetivos y carga los audios correspondientes."""
 
@@ -170,7 +182,7 @@ class AnuraDataset(Dataset[tuple[Tensor, Tensor]]):
         self.expected_samples = round(
             self.sample_rate * float(config["data"]["clip_seconds"])
         )
-        self.transform = transform or LogMelSpectrogram(config)
+        self.transform = transform or build_transform(config)
 
     def __len__(self) -> int:
         return len(self.rows)

@@ -25,6 +25,8 @@ _FBRS_FIELDS = (
     "band_selection",
     "target_bands",
     "filter_shape",
+    "filter_normalization",
+    "bank_path",
 )
 
 
@@ -83,6 +85,12 @@ def validate_config(config: dict[str, Any]) -> None:
 
     features = _require_mapping(config, "features")
     _require_fields(features, ("type", *_COMMON_FEATURE_FIELDS), "features")
+    if features["window"] != "hamming":
+        raise ValueError("La implementación requiere features.window=hamming")
+    if int(features["n_fft"]) <= 1 or int(features["hop_length"]) <= 0:
+        raise ValueError("features.n_fft y features.hop_length deben ser positivos")
+    if float(features["power"]) <= 0 or float(features["log_epsilon"]) <= 0:
+        raise ValueError("features.power y features.log_epsilon deben ser positivos")
     feature_type = features["type"]
     if feature_type == "mel":
         _require_fields(
@@ -98,6 +106,28 @@ def validate_config(config: dict[str, Any]) -> None:
             raise ValueError(
                 "features.fit_subset debe ser active_positive_training o all_training"
             )
+        if features["bank_scope"] != "corpus":
+            raise ValueError("La implementación requiere features.bank_scope=corpus")
+        if features["energy_normalization"] != "per_level":
+            raise ValueError("La implementación requiere energy_normalization=per_level")
+        if features["band_selection"] != "target_count":
+            raise ValueError("La implementación requiere band_selection=target_count")
+        if features["filter_shape"] != "triangular":
+            raise ValueError("La implementación requiere filter_shape=triangular")
+        if features["filter_normalization"] != "peak":
+            raise ValueError("La implementación requiere filter_normalization=peak")
+        level = features["level"]
+        target_bands = features["target_bands"]
+        if isinstance(level, bool) or not isinstance(level, int) or level <= 0:
+            raise ValueError("features.level debe ser un entero positivo")
+        if (
+            isinstance(target_bands, bool)
+            or not isinstance(target_bands, int)
+            or not 1 <= target_bands <= 2**level
+        ):
+            raise ValueError("features.target_bands debe pertenecer a [1, 2**level]")
+        if not isinstance(features["bank_path"], str) or not features["bank_path"].strip():
+            raise ValueError("features.bank_path debe ser una ruta no vacía")
     else:
         raise ValueError(f"Tipo de representación no reconocido: {feature_type}")
 

@@ -88,7 +88,7 @@ la evaluación final.
 
 `data.num_labels` es la fuente de verdad ejecutable para el número de salidas del clasificador y
 vale `31` en los experimentos principales.
-Los modelos deben derivar su dimensión de salida desde ese valor; no se duplica en la sección
+Los modelos derivan su dimensión de salida desde ese valor; no se duplica en la sección
 `model` de las configuraciones. La definición y auditoría de las etiquetas se documentan en
 «Conjunto de datos y definición de la tarea».
 
@@ -184,3 +184,11 @@ otro dominio, otra definición de tarea y otra métrica. Las comparaciones del p
 realizarse entre modelos entrenados con las mismas particiones y el mismo protocolo de
 evaluación. Como mínimo se evalúa la matriz factorial CNN/DLoGNet × Mel/FBRS para no atribuir a la
 representación un cambio que también pueda deberse a la arquitectura, o viceversa.
+
+El banco FBRS global se ajusta mediante `python -m anuraset_dl.fbrs` y se persiste en la ruta
+`features.bank_path`. La selección comienza con las hojas del nivel configurado y fusiona, de
+forma determinista, el par de hermanos activo con menor energía agregada hasta alcanzar
+`target_bands`. Los filtros triangulares se construyen sobre los centros de las bandas, se
+solapan hasta los centros adyacentes y se normalizan a pico unitario. Entrenamiento y evaluación
+cargan el mismo artefacto congelado y rechazan cambios en su firma, los metadatos o el manifiesto
+de entrenamiento.
