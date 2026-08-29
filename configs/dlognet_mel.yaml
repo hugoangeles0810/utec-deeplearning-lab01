@@ -26,6 +26,8 @@ features:
   n_mels: 128
   f_min: 0
   f_max: 11025
+  mel_scale: htk
+  filter_normalization: none
   log_epsilon: 1.0e-10
 
 model:
@@ -36,8 +38,12 @@ training:
   epochs: 50
   learning_rate: 0.0001
   loss: bce_with_logits
+  device: auto
+  num_workers: 0
+  checkpoint_dir: outputs/checkpoints
 
 evaluation:
   threshold_strategy: per_class_validation_f1
   zero_positive_class_policy: error
   metrics: [precision, recall, f1, map]
+  metrics_dir: outputs/metrics

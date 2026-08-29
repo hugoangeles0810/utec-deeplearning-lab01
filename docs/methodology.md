@@ -101,6 +101,30 @@ numéricamente estable. No se debe aplicar sigmoid a los logits antes de calcula
 Sigmoid se aplica durante inferencia o evaluación para convertir logits en probabilidades. No se
 utilizan softmax ni cross-entropy multiclase porque las etiquetas no son mutuamente excluyentes.
 
+## Baseline CNN + Mel
+
+El baseline utiliza preénfasis `0.97`, ventana Hamming periódica, `n_fft = 1024`, salto de 256
+muestras, espectro sin centrado y potencia al cuadrado. La proyección consta de 128 filtros
+triangulares sobre escala Mel HTK, sin normalización de área, entre 0 Hz y Nyquist. Se aplica el
+logaritmo natural después de limitar la energía inferiormente por `1e-10`. Esta transformación no
+ajusta estadísticas con validación o prueba y produce tensores con un canal.
+
+La CNN de referencia contiene tres bloques `Conv2d` 3×3, `BatchNorm2d`, ReLU y `MaxPool2d` 2×2,
+con 32, 64 y 128 canales. Un `AdaptiveAvgPool2d`, *dropout* de 0.3 y una capa lineal producen los
+31 logits. La dimensión de salida se deriva de `data.num_labels`.
+
+El entrenamiento utiliza Adam, la tasa de aprendizaje declarada en configuración, lotes de 32 y
+50 épocas. Se conserva como mejor checkpoint el mínimo de `BCEWithLogitsLoss` sobre validación;
+también se guarda el estado de la última época y un historial JSON. La semilla inicializa Python,
+NumPy y PyTorch. El dispositivo `auto` prioriza CUDA, luego MPS y finalmente CPU. No se aplican
+aumentos ni ponderación de clases en este baseline inicial.
+
+Cada checkpoint conserva la huella de la configuración semántica y las huellas SHA-256 de los
+metadatos y manifiestos. La configuración semántica excluye el dispositivo, el número de workers y
+las rutas de salida porque no alteran la definición del modelo ni del experimento. Esto permite
+cambiar de CPU, MPS o CUDA durante evaluación sin aceptar cambios silenciosos en datos, particiones,
+representación, arquitectura o hiperparámetros.
+
 ## Evaluación
 
 La evaluación debe reportar precisión, exhaustividad y F1 por clase y sus agregaciones macro,
@@ -115,6 +139,13 @@ clase principal no tiene positivos en alguna de esas particiones, la evaluación
 reportar que los manifiestos son inválidos; no debe excluir silenciosamente esa clase de las
 métricas macro o de mAP. Esta política se declara mediante
 `evaluation.zero_positive_class_policy: error`.
+
+El artefacto de evaluación conserva los umbrales, las métricas de validación y prueba, el orden de
+etiquetas, las huellas de los datos y las huellas de configuración y checkpoint. Antes de inferir,
+la evaluación exige que los metadatos y todos los manifiestos coincidan por contenido con los
+registrados durante entrenamiento. Precisión, exhaustividad, F1 y average precision se reportan
+por clase; sus tres primeros agregados son medias macro y mAP es la media de average precision. El
+comando de evaluación es la única etapa del baseline que carga ejemplos de prueba.
 
 ## Adaptación de FBRS y DLoGNet
 

@@ -85,7 +85,13 @@ def validate_config(config: dict[str, Any]) -> None:
     _require_fields(features, ("type", *_COMMON_FEATURE_FIELDS), "features")
     feature_type = features["type"]
     if feature_type == "mel":
-        _require_fields(features, ("n_mels", "f_min", "f_max"), "features")
+        _require_fields(
+            features,
+            ("n_mels", "f_min", "f_max", "mel_scale", "filter_normalization"),
+            "features",
+        )
+        if features["mel_scale"] != "htk" or features["filter_normalization"] != "none":
+            raise ValueError("El baseline requiere Mel HTK sin normalización del banco")
     elif feature_type == "fbrs":
         _require_fields(features, _FBRS_FIELDS, "features")
         if features["fit_subset"] not in {"active_positive_training", "all_training"}:
@@ -96,9 +102,37 @@ def validate_config(config: dict[str, Any]) -> None:
         raise ValueError(f"Tipo de representación no reconocido: {feature_type}")
 
     training = _require_mapping(config, "training")
-    _require_fields(training, ("batch_size", "epochs", "learning_rate", "loss"), "training")
+    _require_fields(
+        training,
+        (
+            "batch_size",
+            "epochs",
+            "learning_rate",
+            "loss",
+            "device",
+            "num_workers",
+            "checkpoint_dir",
+        ),
+        "training",
+    )
     if training["loss"] != "bce_with_logits":
         raise ValueError("La tarea multietiqueta requiere training.loss=bce_with_logits")
+    if training["device"] not in {"auto", "cpu", "mps", "cuda"}:
+        raise ValueError("training.device debe ser auto, cpu, mps o cuda")
+    for field in ("batch_size", "epochs"):
+        invalid_type = isinstance(training[field], bool) or not isinstance(
+            training[field], int
+        )
+        if invalid_type or training[field] <= 0:
+            raise ValueError(f"training.{field} debe ser un entero positivo")
+    if (
+        isinstance(training["num_workers"], bool)
+        or not isinstance(training["num_workers"], int)
+        or training["num_workers"] < 0
+    ):
+        raise ValueError("training.num_workers debe ser un entero no negativo")
+    if float(training["learning_rate"]) <= 0:
+        raise ValueError("training.learning_rate debe ser positivo")
 
     evaluation = _require_mapping(config, "evaluation")
     _require_fields(
@@ -106,6 +140,9 @@ def validate_config(config: dict[str, Any]) -> None:
         ("threshold_strategy", "zero_positive_class_policy", "metrics"),
         "evaluation",
     )
+    _require_fields(evaluation, ("metrics_dir",), "evaluation")
+    if evaluation["threshold_strategy"] != "per_class_validation_f1":
+        raise ValueError("Los umbrales deben seleccionarse por F1 en validación")
     if evaluation["zero_positive_class_policy"] != "error":
         raise ValueError(
             "Las clases principales sin positivos deben invalidar la evaluación"

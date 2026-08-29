@@ -5,9 +5,9 @@ multietiqueta de anuros sobre grabaciones con formato AnuraSet.
 
 ## Estado
 
-El repositorio contiene la auditoría del corpus y las particiones reproducibles por grabación.
-La implementación de FBRS, DLoGNet, entrenamiento y evaluación se incorporará progresivamente
-dentro de `src/anuraset_dl/`.
+El repositorio contiene la auditoría del corpus, las particiones reproducibles por grabación y
+un baseline CNN + log-Mel ejecutable de extremo a extremo. FBRS y DLoGNet se incorporarán
+progresivamente dentro de `src/anuraset_dl/`.
 
 ## Preparación del entorno
 
@@ -23,13 +23,20 @@ uv sync --group dev
 uv run pytest
 uv run jupyter lab
 uv run python -m anuraset_dl.prepare_data --config configs/baseline.yaml
-uv run python -m anuraset_dl.train --config configs/dlognet_fbrs.yaml
-uv run python -m anuraset_dl.evaluate --config configs/dlognet_fbrs.yaml
+uv run python -m anuraset_dl.train --config configs/baseline.yaml
+uv run python -m anuraset_dl.evaluate --config configs/baseline.yaml
 ```
 
 El comando de preparación valida el CSV y todas las cabeceras de audio antes de reproducir los
-manifiestos. Los dos últimos comandos validan actualmente la configuración y muestran el estado
-del pipeline; todavía no ejecutan entrenamiento ni evaluación.
+manifiestos. El entrenamiento guarda `best.pt`, `last.pt` y el historial bajo
+`outputs/checkpoints/cnn_mel_baseline/`. La evaluación selecciona los umbrales por clase sobre
+validación, los congela para prueba y escribe el reporte completo en
+`outputs/metrics/cnn_mel_baseline.json`.
+
+El dispositivo se selecciona automáticamente con prioridad CUDA, MPS y CPU. Puede forzarse, por
+ejemplo, con `--device cpu` tanto en entrenamiento como en evaluación. El cambio de dispositivo
+no invalida un checkpoint; la evaluación sí se detiene si detecta cambios en los metadatos o en
+alguno de los manifiestos utilizados por el experimento.
 
 ## Organización
 
