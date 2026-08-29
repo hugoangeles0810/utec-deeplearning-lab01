@@ -21,6 +21,37 @@ El grupo `tracking` instala MLflow y la captura de métricas del sistema. El pip
 ejecutarse sin ese grupo si `tracking.enabled` se desactiva; si MLflow no está disponible o su
 backend falla, el experimento continúa y conserva sus artefactos locales canónicos.
 
+## Estructura del dataset
+
+Los datos no se distribuyen con el repositorio. Después de obtener AnuraSet, deben organizarse
+localmente con esta estructura:
+
+```text
+dataset/
+├── train.csv
+└── train/
+    ├── <filename_1>.wav
+    ├── <filename_2>.wav
+    └── ...
+```
+
+`train.csv` debe contener una columna `filename` con nombres únicos y una columna binaria por
+etiqueta. Cada valor de `filename` debe identificar exactamente un WAV dentro de `dataset/train/`.
+Los audios del protocolo vigente son mono, tienen una frecuencia de muestreo de 22.05 kHz y una
+duración exacta de 3 segundos. Los nombres deben conservarse sin cambios, porque los manifiestos
+versionados en `splits/` los utilizan para vincular cada clip con su partición.
+
+El CSV y los WAV permanecen ignorados por Git; los archivos `.gitkeep` conservan únicamente la
+estructura vacía. Para validar el dataset local y comprobar que coincide con los manifiestos:
+
+```bash
+uv run python -m anuraset_dl.prepare_data --config configs/baseline.yaml
+```
+
+La política de etiquetas, particiones y controles se detalla en
+[`docs/data-preparation.md`](docs/data-preparation.md), y la huella del corte utilizado por el
+proyecto se registra en [`docs/dataset-audit.md`](docs/dataset-audit.md).
+
 ## Comandos principales
 
 ```bash

@@ -6,7 +6,11 @@ __pycache__/
 .ruff_cache/
 .ipynb_checkpoints/
 
-dataset/
+dataset/*
+!dataset/.gitkeep
+!dataset/train/
+dataset/train/*
+!dataset/train/.gitkeep
 paper.pdf
 
 outputs/filterbanks/*
