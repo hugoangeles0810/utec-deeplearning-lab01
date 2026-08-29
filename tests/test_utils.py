@@ -68,3 +68,11 @@ def test_config_rejects_silently_omitting_classes_without_positives() -> None:
 
     with pytest.raises(ValueError, match="invalidar la evaluación"):
         validate_config(config)
+
+
+def test_config_rejects_non_boolean_tracking_switch() -> None:
+    config = deepcopy(load_config(ROOT / "configs" / "baseline.yaml"))
+    config["tracking"]["enabled"] = "yes"
+
+    with pytest.raises(ValueError, match="tracking.enabled debe ser booleano"):
+        validate_config(config)

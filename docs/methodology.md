@@ -125,6 +125,20 @@ las rutas de salida porque no alteran la definición del modelo ni del experimen
 cambiar de CPU, MPS o CUDA durante evaluación sin aceptar cambios silenciosos en datos, particiones,
 representación, arquitectura o hiperparámetros.
 
+## Seguimiento de experimentos con MLflow
+
+MLflow Tracking se utiliza como una capa operacional opcional. Cada entrenamiento crea un run y
+guarda su identificador en `best.pt`, `last.pt` y `history.json`; la evaluación reanuda ese mismo
+run para incorporar las métricas de validación y prueba. Se registran la configuración efectiva,
+las huellas de datos, pérdidas por época, duración, métricas finales y los reportes JSON pequeños.
+Los checkpoints no se copian al almacén de artefactos de MLflow para evitar duplicar binarios.
+
+La sección `tracking` de la configuración no forma parte de la huella semántica del experimento:
+activar, desactivar o reubicar la telemetría no cambia el modelo ni invalida un checkpoint. Un
+fallo de importación, conexión o escritura de MLflow emite una advertencia, pero no interrumpe el
+entrenamiento ni la evaluación. Los archivos bajo `outputs/checkpoints/` y `outputs/metrics/`
+siguen siendo los artefactos canónicos del proyecto.
+
 ## Evaluación
 
 La evaluación debe reportar precisión, exhaustividad y F1 por clase y sus agregaciones macro,

@@ -14,17 +14,21 @@ progresivamente dentro de `src/anuraset_dl/`.
 Se requiere Python 3.12 y [`uv`](https://docs.astral.sh/uv/).
 
 ```bash
-uv sync --group dev
+uv sync --group dev --group tracking
 ```
+
+El grupo `tracking` instala MLflow y la captura de métricas del sistema. El pipeline puede
+ejecutarse sin ese grupo si `tracking.enabled` se desactiva; si MLflow no está disponible o su
+backend falla, el experimento continúa y conserva sus artefactos locales canónicos.
 
 ## Comandos principales
 
 ```bash
 uv run pytest
 uv run jupyter lab
-uv run python -m anuraset_dl.prepare_data --config configs/baseline.yaml
-uv run python -m anuraset_dl.train --config configs/baseline.yaml
-uv run python -m anuraset_dl.evaluate --config configs/baseline.yaml
+uv run --group tracking python -m anuraset_dl.prepare_data --config configs/baseline.yaml
+uv run --group tracking python -m anuraset_dl.train --config configs/baseline.yaml
+uv run --group tracking python -m anuraset_dl.evaluate --config configs/baseline.yaml
 ```
 
 El comando de preparación valida el CSV y todas las cabeceras de audio antes de reproducir los
@@ -37,6 +41,18 @@ El dispositivo se selecciona automáticamente con prioridad CUDA, MPS y CPU. Pue
 ejemplo, con `--device cpu` tanto en entrenamiento como en evaluación. El cambio de dispositivo
 no invalida un checkpoint; la evaluación sí se detiene si detecta cambios en los metadatos o en
 alguno de los manifiestos utilizados por el experimento.
+
+Entrenamiento y evaluación comparten un mismo run de MLflow. La interfaz local se abre con:
+
+```bash
+uv run --group tracking mlflow server \
+  --backend-store-uri sqlite:///outputs/mlflow/mlflow.db \
+  --default-artifact-root ./outputs/mlflow/artifacts
+```
+
+Después puede consultarse en `http://127.0.0.1:5000`. MLflow registra parámetros, huellas,
+pérdidas por época, duración y métricas finales, pero no copia `best.pt` ni `last.pt`; esos
+checkpoints permanecen bajo `outputs/checkpoints/`.
 
 ## Organización
 

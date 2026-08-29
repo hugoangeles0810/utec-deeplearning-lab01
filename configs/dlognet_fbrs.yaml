@@ -50,3 +50,10 @@ evaluation:
   zero_positive_class_policy: error
   metrics: [precision, recall, f1, map]
   metrics_dir: outputs/metrics
+
+tracking:
+  enabled: true
+  experiment_name: anuraset_dl
+  tracking_uri: sqlite:///outputs/mlflow/mlflow.db
+  artifact_root: outputs/mlflow/artifacts
+  log_system_metrics: true

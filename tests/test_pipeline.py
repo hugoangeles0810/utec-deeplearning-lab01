@@ -4,6 +4,7 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
+import pytest
 import soundfile as sf
 
 from anuraset_dl.evaluate import evaluate_experiment
@@ -114,11 +115,51 @@ def test_runtime_options_do_not_change_semantic_fingerprint(tmp_path: Path) -> N
     changed["training"]["num_workers"] = 3
     changed["training"]["checkpoint_dir"] = str(tmp_path / "other-checkpoints")
     changed["evaluation"]["metrics_dir"] = str(tmp_path / "other-metrics")
+    changed["tracking"] = {
+        "enabled": True,
+        "experiment_name": "synthetic-tests",
+        "tracking_uri": f"sqlite:///{tmp_path / 'mlflow.db'}",
+        "artifact_root": str(tmp_path / "mlflow-artifacts"),
+        "log_system_metrics": False,
+    }
 
     assert config_fingerprint(changed) == config_fingerprint(config)
 
     changed["training"]["learning_rate"] = 0.01
     assert config_fingerprint(changed) != config_fingerprint(config)
+
+
+def test_mlflow_links_training_and_evaluation_in_the_same_run(tmp_path: Path) -> None:
+    mlflow = pytest.importorskip("mlflow")
+    config = _synthetic_experiment(tmp_path)
+    config["tracking"] = {
+        "enabled": True,
+        "experiment_name": "synthetic-tests",
+        "tracking_uri": f"sqlite:///{tmp_path / 'mlflow.db'}",
+        "artifact_root": str(tmp_path / "mlflow-artifacts"),
+        "log_system_metrics": False,
+    }
+
+    training = train_experiment(config)
+    evaluation = evaluate_experiment(config, training["best_checkpoint"])
+
+    assert training["tracking_run_id"]
+    assert evaluation["tracking_run_id"] == training["tracking_run_id"]
+    client = mlflow.MlflowClient(tracking_uri=config["tracking"]["tracking_uri"])
+    run = client.get_run(training["tracking_run_id"])
+    assert run.info.status == "FINISHED"
+    assert run.data.params["model.name"] == "cnn"
+    assert "training/loss" in run.data.metrics
+    assert "validation/loss" in run.data.metrics
+    assert "test/macro/f1" in run.data.metrics
+    assert run.data.tags["anuraset.training_recorded"] == "true"
+    assert run.data.tags["anuraset.evaluation_recorded"] == "true"
+    assert [item.path for item in client.list_artifacts(run.info.run_id, "training")] == [
+        "training/history.json"
+    ]
+    assert [item.path for item in client.list_artifacts(run.info.run_id, "evaluation")] == [
+        "evaluation/synthetic_cnn_mel.json"
+    ]
 
 
 def test_evaluation_rejects_changed_manifests(tmp_path: Path) -> None:

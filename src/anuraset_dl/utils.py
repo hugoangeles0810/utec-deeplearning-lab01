@@ -148,6 +148,29 @@ def validate_config(config: dict[str, Any]) -> None:
             "Las clases principales sin positivos deben invalidar la evaluación"
         )
 
+    tracking = config.get("tracking")
+    if tracking is not None:
+        if not isinstance(tracking, dict):
+            raise ValueError("La sección 'tracking' debe ser un objeto YAML")
+        _require_fields(
+            tracking,
+            (
+                "enabled",
+                "experiment_name",
+                "tracking_uri",
+                "artifact_root",
+                "log_system_metrics",
+            ),
+            "tracking",
+        )
+        if not isinstance(tracking["enabled"], bool):
+            raise ValueError("tracking.enabled debe ser booleano")
+        if not isinstance(tracking["log_system_metrics"], bool):
+            raise ValueError("tracking.log_system_metrics debe ser booleano")
+        for field in ("experiment_name", "tracking_uri", "artifact_root"):
+            if not isinstance(tracking[field], str) or not tracking[field].strip():
+                raise ValueError(f"tracking.{field} debe ser un texto no vacío")
+
 
 def num_outputs(config: dict[str, Any]) -> int:
     """Obtiene la dimensión de salida desde la única fuente de verdad del dataset."""

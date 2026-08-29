@@ -27,6 +27,10 @@ dev = [
     "ruff>=0.8",
     "seaborn>=0.13",
 ]
+tracking = [
+    "mlflow>=3.7,<4",
+    "psutil>=7.0",
+]
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/anuraset_dl"]

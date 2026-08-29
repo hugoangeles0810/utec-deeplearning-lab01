@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import copy
+import time
 from pathlib import Path
 from typing import Any
 
@@ -20,6 +21,7 @@ from anuraset_dl.runtime import (
     resolve_device,
     set_reproducibility,
 )
+from anuraset_dl.tracking import MlflowTracker
 from anuraset_dl.utils import load_config
 
 
@@ -77,47 +79,88 @@ def train_experiment(config: dict[str, Any]) -> dict[str, Any]:
     history: list[dict[str, float | int]] = []
     epochs = int(config["training"]["epochs"])
     input_fingerprints = data_fingerprints(config)
+    semantic_fingerprint = config_fingerprint(config)
+    tracker = MlflowTracker.start(config, phase="training")
+    tracker.log_config(config)
+    tracker.log_dict(input_fingerprints, "inputs/data_fingerprints.json")
+    tracker.set_tags({"anuraset.config_sha256": semantic_fingerprint})
+    started_at = time.perf_counter()
 
-    for epoch in range(1, epochs + 1):
-        train_loss = _run_epoch(model, train_loader, criterion, device, optimizer)
-        validation_loss = _run_epoch(
-            model, validation_loader, criterion, device, optimizer=None
-        )
-        history.append(
-            {"epoch": epoch, "train_loss": train_loss, "validation_loss": validation_loss}
-        )
-        checkpoint = {
-            "schema_version": 1,
-            "experiment": config["experiment"],
-            "config_sha256": config_fingerprint(config),
-            "data_fingerprints": input_fingerprints,
-            "labels": list(labels),
-            "model_name": config["model"]["name"],
-            "model_state": model.state_dict(),
-            "optimizer_state": optimizer.state_dict(),
-            "epoch": epoch,
-            "validation_loss": validation_loss,
-        }
-        atomic_torch_save(checkpoint, last_path)
-        if validation_loss < best_loss:
-            best_loss = validation_loss
-            atomic_torch_save(checkpoint, best_path)
-        atomic_json_dump(
-            {
+    try:
+        for epoch in range(1, epochs + 1):
+            epoch_started_at = time.perf_counter()
+            train_loss = _run_epoch(model, train_loader, criterion, device, optimizer)
+            validation_loss = _run_epoch(
+                model, validation_loader, criterion, device, optimizer=None
+            )
+            epoch_duration = time.perf_counter() - epoch_started_at
+            history.append(
+                {
+                    "epoch": epoch,
+                    "train_loss": train_loss,
+                    "validation_loss": validation_loss,
+                    "duration_seconds": epoch_duration,
+                }
+            )
+            checkpoint = {
+                "schema_version": 2,
                 "experiment": config["experiment"],
-                "seed": int(config["seed"]),
-                "device": str(device),
-                "learning_rate": learning_rate,
-                "trainable_parameters": count_trainable_parameters(model),
-                "best_validation_loss": best_loss,
-                "epochs": history,
-            },
-            history_path,
+                "config_sha256": semantic_fingerprint,
+                "data_fingerprints": input_fingerprints,
+                "labels": list(labels),
+                "model_name": config["model"]["name"],
+                "model_state": model.state_dict(),
+                "optimizer_state": optimizer.state_dict(),
+                "epoch": epoch,
+                "validation_loss": validation_loss,
+                "tracking_run_id": tracker.run_id,
+            }
+            atomic_torch_save(checkpoint, last_path)
+            if validation_loss < best_loss:
+                best_loss = validation_loss
+                atomic_torch_save(checkpoint, best_path)
+            total_duration = time.perf_counter() - started_at
+            atomic_json_dump(
+                {
+                    "experiment": config["experiment"],
+                    "seed": int(config["seed"]),
+                    "device": str(device),
+                    "learning_rate": learning_rate,
+                    "trainable_parameters": count_trainable_parameters(model),
+                    "best_validation_loss": best_loss,
+                    "duration_seconds": total_duration,
+                    "tracking_run_id": tracker.run_id,
+                    "epochs": history,
+                },
+                history_path,
+            )
+            tracker.log_metrics(
+                {
+                    "training/loss": train_loss,
+                    "validation/loss": validation_loss,
+                    "training/epoch_duration_seconds": epoch_duration,
+                },
+                step=epoch,
+            )
+            print(
+                f"Época {epoch:03d}/{epochs}: train_loss={train_loss:.6f}, "
+                f"validation_loss={validation_loss:.6f}"
+            )
+
+        total_duration = time.perf_counter() - started_at
+        tracker.log_metrics(
+            {
+                "training/best_validation_loss": best_loss,
+                "training/duration_seconds": total_duration,
+            }
         )
-        print(
-            f"Época {epoch:03d}/{epochs}: train_loss={train_loss:.6f}, "
-            f"validation_loss={validation_loss:.6f}"
-        )
+        tracker.set_tags({"anuraset.training_recorded": "true"})
+        tracker.log_artifact(history_path, artifact_path="training")
+        tracker.end("FINISHED")
+    except BaseException:
+        tracker.log_metrics({"training/duration_seconds": time.perf_counter() - started_at})
+        tracker.end("FAILED")
+        raise
 
     return {
         "best_checkpoint": str(best_path),
@@ -125,6 +168,7 @@ def train_experiment(config: dict[str, Any]) -> dict[str, Any]:
         "history": str(history_path),
         "best_validation_loss": best_loss,
         "device": str(device),
+        "tracking_run_id": tracker.run_id,
     }
 
 

@@ -8,6 +8,8 @@ Cada experimento debe registrar como mínimo:
 - versión o alcance del banco FBRS;
 - métricas por clase y agregadas;
 - ruta de los artefactos generados;
+- identificador del run de MLflow cuando el tracking esté habilitado;
+- dispositivo y duración del entrenamiento y la evaluación;
 - observaciones y anomalías.
 
 | Experimento | Representación | Modelo | Estado | Resultado |
@@ -27,6 +29,10 @@ indicados por su fila.
 El pipeline ejecutable incluye carga por manifiestos, transformación log-Mel, CNN, entrenamiento
 con checkpoints, selección de umbrales en validación y evaluación separada sobre prueba. Su prueba
 de integración utiliza un corpus sintético pequeño y no constituye un resultado experimental.
+
+El seguimiento local usa el experimento MLflow `anuraset_dl`. Entrenamiento y evaluación deben
+compartir el identificador almacenado en el checkpoint. MLflow complementa el registro documental:
+no sustituye este archivo ni convierte una prueba sintética en una ejecución experimental.
 
 La ejecución de 50 épocas sobre el corpus auditado sigue pendiente. Al realizarla deben añadirse
 a este registro la fecha, dispositivo, duración, mejor época, pérdidas, métricas, rutas de los
