@@ -53,3 +53,11 @@ El seguimiento local utiliza el experimento MLflow `anuraset_dl`. Entrenamiento 
 deben compartir el identificador almacenado en el checkpoint. MLflow complementa el registro
 documental: no sustituye este archivo ni convierte una prueba sintética en una ejecución
 experimental.
+
+## Ejecución remota
+
+La matriz puede ejecutarse en un host CUDA mediante el flujo documentado en
+[`runpod.md`](runpod.md). Runpod es una decisión operacional: el dispositivo, el número de workers,
+las rutas de exportación y el mecanismo de respaldo no cambian la definición semántica de los
+experimentos. Cada ejecución aceptada debe registrar aquí sus duraciones, métricas, anomalías y
+las rutas de sus artefactos canónicos después de verificar el paquete exportado.

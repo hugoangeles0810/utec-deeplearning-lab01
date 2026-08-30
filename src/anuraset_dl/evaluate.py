@@ -45,7 +45,7 @@ def evaluate_experiment(
     """Ajusta umbrales y calcula las métricas internas sobre validación."""
     set_reproducibility(int(config["seed"]))
     device = resolve_device(str(config["training"].get("device", "auto")))
-    validation_loader, labels = build_loader(config, "validation")
+    validation_loader, labels = build_loader(config, "validation", device=device)
 
     if checkpoint_path is None:
         checkpoint_path = (
@@ -139,11 +139,15 @@ def main() -> None:
     parser.add_argument(
         "--device", choices=("auto", "cpu", "mps", "cuda"), help="Sobrescribe el dispositivo"
     )
+    parser.add_argument("--num-workers", type=int, help="Sobrescribe los workers del DataLoader")
     args = parser.parse_args()
     config = load_config(args.config)
     if args.device:
         config = copy.deepcopy(config)
         config["training"]["device"] = args.device
+    if args.num_workers is not None:
+        config = copy.deepcopy(config)
+        config["training"]["num_workers"] = args.num_workers
     result = evaluate_experiment(config, args.checkpoint)
     macro = result["validation"]["macro"]
     print(

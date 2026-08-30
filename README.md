@@ -21,6 +21,21 @@ El grupo `tracking` instala MLflow y la captura de métricas del sistema. El pip
 ejecutarse sin ese grupo si `tracking.enabled` se desactiva; si MLflow no está disponible o su
 backend falla, el experimento continúa y conserva sus artefactos locales canónicos.
 
+### Ejecución en Runpod
+
+El proyecto incluye un flujo para preparar un Pod con CUDA, aprovisionar únicamente el conjunto
+de entrenamiento, ejecutar por defecto los cuatro experimentos y exportar checkpoints, métricas y
+MLflow en un paquete verificable:
+
+```bash
+scripts/runpod/bootstrap.sh
+scripts/runpod/run.sh
+```
+
+También pueden seleccionarse experimentos individuales y respaldar automáticamente los resultados
+en Google Drive mediante `rclone`. La creación manual del Pod, los requisitos de almacenamiento y
+el procedimiento completo se documentan en [`docs/runpod.md`](docs/runpod.md).
+
 ## Estructura del dataset
 
 Los datos no se distribuyen con el repositorio. Después de obtener AnuraSet, deben organizarse

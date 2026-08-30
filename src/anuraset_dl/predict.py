@@ -107,7 +107,7 @@ def predict_unlabeled(
         batch_size=int(config["training"]["batch_size"]),
         shuffle=False,
         num_workers=int(config["training"].get("num_workers", 0)),
-        pin_memory=False,
+        pin_memory=device.type == "cuda",
     )
     model = build_model(config)
     model.load_state_dict(checkpoint["model_state"])
@@ -117,7 +117,8 @@ def predict_unlabeled(
     model.eval()
     with torch.inference_mode():
         for inputs, batch_filenames in loader:
-            batches.append(torch.sigmoid(model(inputs.to(device))).cpu().numpy())
+            device_inputs = inputs.to(device, non_blocking=device.type == "cuda")
+            batches.append(torch.sigmoid(model(device_inputs)).cpu().numpy())
             filenames.extend(batch_filenames)
     probabilities = np.concatenate(batches)
     frame = pd.DataFrame({"filename": filenames})

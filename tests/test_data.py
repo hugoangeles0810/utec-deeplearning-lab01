@@ -121,7 +121,7 @@ def test_feature_cache_preserves_exact_float32_features(tmp_path: Path) -> None:
         "dtype": "float32",
     }
 
-    created = precompute_feature_cache(config)
+    created = precompute_feature_cache(config, num_workers=1)
     cached_features, cached_targets = AnuraDataset(config, "train")[0]
     reused = precompute_feature_cache(config)
 

@@ -29,3 +29,5 @@ outputs/figures/*
 outputs/mlflow/
 outputs/features/*
 !outputs/features/.gitkeep
+outputs/runpod/
+outputs/exports/

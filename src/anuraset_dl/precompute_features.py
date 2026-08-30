@@ -12,6 +12,7 @@ from pathlib import Path
 from typing import Any
 
 import numpy as np
+from torch.utils.data import DataLoader
 
 from anuraset_dl.data import AnuraDataset, build_transform
 from anuraset_dl.feature_cache import (
@@ -44,8 +45,12 @@ def _existing_cache_result(config: dict[str, Any], directory: Path) -> dict[str,
     }
 
 
-def precompute_feature_cache(config: dict[str, Any]) -> dict[str, Any]:
+def precompute_feature_cache(
+    config: dict[str, Any], num_workers: int = 0
+) -> dict[str, Any]:
     """Materializa todas las particiones en arreglos NPY float32 inmutables."""
+    if num_workers < 0:
+        raise ValueError("num_workers no puede ser negativo")
     destination = cache_directory(config)
     if destination.exists():
         return _existing_cache_result(config, destination)
@@ -76,17 +81,26 @@ def precompute_feature_cache(config: dict[str, Any]) -> dict[str, Any]:
                 dtype=np.float32,
                 shape=(len(dataset), *feature_shape),
             )
-            array[0] = first.numpy()
-            for index in range(1, len(dataset)):
-                features, _ = dataset[index]
+            loader = DataLoader(
+                dataset,
+                batch_size=int(config.get("training", {}).get("batch_size", 32)),
+                shuffle=False,
+                num_workers=num_workers,
+            )
+            cursor = 0
+            for features, _ in loader:
                 if (
-                    tuple(features.shape) != feature_shape
+                    tuple(features.shape[1:]) != feature_shape
                     or not features.dtype.is_floating_point
                 ):
                     raise ValueError(
                         f"La forma o el tipo de características cambió dentro de {split}"
                     )
-                array[index] = features.numpy()
+                next_cursor = cursor + len(features)
+                array[cursor:next_cursor] = features.numpy()
+                cursor = next_cursor
+            if cursor != len(dataset):
+                raise ValueError(f"La caché de {split} no conserva todos los ejemplos")
             array.flush()
             del array
             split_manifests[split] = {
@@ -128,8 +142,9 @@ def main() -> None:
         description="Precomputación de representaciones tiempo-frecuencia"
     )
     parser.add_argument("--config", required=True, help="Ruta de la configuración YAML")
+    parser.add_argument("--num-workers", type=int, default=0)
     args = parser.parse_args()
-    result = precompute_feature_cache(load_config(args.config))
+    result = precompute_feature_cache(load_config(args.config), num_workers=args.num_workers)
     action = "creada" if result["created"] else "reutilizada"
     print(f"Caché {action}: {result['path']} ({result['fingerprint']})")
 

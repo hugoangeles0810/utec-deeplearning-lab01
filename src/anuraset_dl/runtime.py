@@ -45,7 +45,10 @@ def resolve_device(requested: str) -> torch.device:
 
 
 def build_loader(
-    config: dict[str, Any], split: str, shuffle: bool = False
+    config: dict[str, Any],
+    split: str,
+    shuffle: bool = False,
+    device: torch.device | None = None,
 ) -> tuple[DataLoader[tuple[Tensor, Tensor]], tuple[str, ...]]:
     """Construye un DataLoader y devuelve el orden canónico de etiquetas."""
     dataset = AnuraDataset(config, split)
@@ -55,7 +58,7 @@ def build_loader(
         batch_size=int(config["training"]["batch_size"]),
         shuffle=shuffle,
         num_workers=int(config["training"].get("num_workers", 0)),
-        pin_memory=False,
+        pin_memory=device is not None and device.type == "cuda",
         generator=generator,
     )
     return loader, dataset.labels
@@ -72,7 +75,7 @@ def predict_probabilities(
     probabilities: list[np.ndarray] = []
     with torch.inference_mode():
         for inputs, batch_targets in loader:
-            logits = model(inputs.to(device))
+            logits = model(inputs.to(device, non_blocking=device.type == "cuda"))
             probabilities.append(torch.sigmoid(logits).cpu().numpy())
             targets.append(batch_targets.numpy())
     if not targets:

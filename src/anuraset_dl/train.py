@@ -39,8 +39,9 @@ def _run_epoch(
     context = torch.enable_grad() if training else torch.inference_mode()
     with context:
         for inputs, targets in loader:
-            inputs = inputs.to(device)
-            targets = targets.to(device)
+            non_blocking = device.type == "cuda"
+            inputs = inputs.to(device, non_blocking=non_blocking)
+            targets = targets.to(device, non_blocking=non_blocking)
             if optimizer is not None:
                 optimizer.zero_grad(set_to_none=True)
             logits = model(inputs)
@@ -59,8 +60,8 @@ def train_experiment(config: dict[str, Any]) -> dict[str, Any]:
     """Entrena el experimento y persiste checkpoints ``best`` y ``last``."""
     set_reproducibility(int(config["seed"]))
     device = resolve_device(str(config["training"].get("device", "auto")))
-    train_loader, labels = build_loader(config, "train", shuffle=True)
-    validation_loader, validation_labels = build_loader(config, "validation")
+    train_loader, labels = build_loader(config, "train", shuffle=True, device=device)
+    validation_loader, validation_labels = build_loader(config, "validation", device=device)
     if labels != validation_labels:
         raise ValueError("Train y validation no comparten el mismo orden de etiquetas")
 
@@ -177,11 +178,15 @@ def main() -> None:
     parser.add_argument(
         "--device", choices=("auto", "cpu", "mps", "cuda"), help="Sobrescribe el dispositivo"
     )
+    parser.add_argument("--num-workers", type=int, help="Sobrescribe los workers del DataLoader")
     args = parser.parse_args()
     config = load_config(args.config)
     if args.device:
         config = copy.deepcopy(config)
         config["training"]["device"] = args.device
+    if args.num_workers is not None:
+        config = copy.deepcopy(config)
+        config["training"]["num_workers"] = args.num_workers
     result = train_experiment(config)
     print(f"Entrenamiento completado. Mejor checkpoint: {result['best_checkpoint']}")
 

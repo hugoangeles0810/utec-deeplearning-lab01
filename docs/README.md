@@ -17,6 +17,7 @@ bibliográfico y el registro de ejecuciones.
 5. [`fbrs.md`](fbrs.md): fundamentos de FBRS, adaptación a AnuraSet, decisiones configuradas y
    verificaciones requeridas.
 6. [`experiments.md`](experiments.md): requisitos, estado y resultados de los experimentos.
+7. [`runpod.md`](runpod.md): preparación operacional, ejecución remota y respaldo de resultados.
 
 ## Fuentes locales
 
@@ -35,6 +36,7 @@ versionar binarios grandes. La referencia bibliográfica y el DOI se conservan e
 | `paper-summary.md` | Método, resultados y limitaciones del artículo | Transferir automáticamente decisiones al proyecto |
 | `fbrs.md` | Diseño técnico y adaptación de FBRS | Sustituir el protocolo general del proyecto |
 | `experiments.md` | Configuraciones ejecutadas, artefactos y resultados | Introducir decisiones metodológicas sin documentarlas |
+| `runpod.md` | Aprovisionamiento operacional y exportación | Cambiar el protocolo experimental |
 
 Cuando una ejecución requiera cambiar el protocolo, la decisión debe actualizarse primero en
 `methodology.md` o en el documento técnico correspondiente y después registrarse en
