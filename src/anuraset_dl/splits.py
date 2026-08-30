@@ -536,6 +536,48 @@ def validate_manifests(
                 raise ValueError(f"Cobertura insuficiente para {label} en {split}")
 
 
+def validate_existing_artifacts(
+    data: PreparedData, policy: PreparationPolicy
+) -> dict[str, pd.DataFrame]:
+    """Valida los manifiestos congelados y su vínculo con el reporte versionado."""
+    manifests: dict[str, pd.DataFrame] = {}
+    for split, path in zip(policy.split_names, policy.manifest_paths):
+        if not path.is_file():
+            raise FileNotFoundError(f"No existe el manifiesto congelado: {path}")
+        manifests[split] = pd.read_csv(path)
+    validate_manifests(manifests, data, policy)
+
+    if not policy.report_path.is_file():
+        raise FileNotFoundError(f"No existe el reporte congelado: {policy.report_path}")
+    report = json.loads(policy.report_path.read_text(encoding="utf-8"))
+    if report.get("metadata", {}).get("sha256") != data.metadata_sha256:
+        raise ValueError("El reporte congelado no corresponde a los metadatos vigentes")
+    expected_hashes = {
+        path.name: sha256_file(path) for path in policy.manifest_paths
+    }
+    if report.get("manifests_sha256") != expected_hashes:
+        raise ValueError("Las huellas de los manifiestos no coinciden con el reporte congelado")
+
+    report_policy = report.get("policy", {})
+    expected_policy = {
+        "seed": policy.seed,
+        "split_order": list(policy.split_names),
+        "minimum_positive_recordings": dict(
+            zip(policy.split_names, policy.minimum_positive_recordings)
+        ),
+        "exploratory_minimum_positive_recordings": dict(
+            zip(policy.split_names, policy.exploratory_minimum_positive_recordings)
+        ),
+        "active_labels": list(data.active_labels),
+        "exploratory_labels": list(data.exploratory_labels),
+        "excluded_labels": list(data.excluded_labels),
+    }
+    for field, expected in expected_policy.items():
+        if report_policy.get(field) != expected:
+            raise ValueError(f"El reporte congelado difiere de la política vigente en {field}")
+    return manifests
+
+
 def _frame_csv_bytes(frame: pd.DataFrame) -> bytes:
     return frame.to_csv(index=False, lineterminator="\n").encode("utf-8")
 
@@ -618,7 +660,7 @@ def build_report(
         "validations": {
             "metadata_binary_and_complete": True,
             "metadata_audio_correspondence": True,
-            "audio_headers": True,
+            "audio_headers": False,
             "each_clip_exactly_once": True,
             "recording_disjointness": True,
             "main_label_coverage": True,

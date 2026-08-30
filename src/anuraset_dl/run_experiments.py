@@ -62,7 +62,10 @@ def build_execution_plan(
         CommandStage(
             "validate_data",
             _command(
-                "anuraset_dl.prepare_data", "--config", EXPERIMENT_CONFIGS["cnn_mel_baseline"]
+                "anuraset_dl.prepare_data",
+                "--config",
+                EXPERIMENT_CONFIGS["cnn_mel_baseline"],
+                "--verify-existing",
             ),
         ),
     ]

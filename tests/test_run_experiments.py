@@ -36,6 +36,8 @@ def test_default_plan_runs_the_complete_factorial_matrix() -> None:
         "evaluate_dlognet_fbrs",
     ]
     assert plan[0].arguments[-2:] == ("--only", "train")
+    validation = next(stage for stage in plan if stage.name == "validate_data")
+    assert validation.arguments[-1] == "--verify-existing"
     training = next(stage for stage in plan if stage.name == "train_dlognet_mel")
     assert training.arguments[-4:] == ("--device", "cuda", "--num-workers", "4")
 

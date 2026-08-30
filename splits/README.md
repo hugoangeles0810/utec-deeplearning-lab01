@@ -36,8 +36,16 @@ Los manifiestos no duplican las columnas de etiquetas de `dataset/train.csv`. El
 versionable `splits/report.json` debe conservar la huella SHA-256 del archivo de metadatos
 utilizado y las verificaciones exigidas por la política de preparación de datos.
 
-Para comprobar la reproducibilidad sin modificar resultados idénticos:
+Para validar en un host de entrenamiento que los manifiestos congelados corresponden al dataset,
+cumplen las coberturas y coinciden con las huellas del reporte:
 
 ```bash
-uv run python -m anuraset_dl.prepare_data --config configs/baseline.yaml
+uv run python -m anuraset_dl.prepare_data \
+  --config configs/baseline.yaml \
+  --verify-existing
 ```
+
+La ejecución sin `--verify-existing` vuelve a resolver el MILP y se reserva para mantenimiento
+explícito de las particiones. Distintas compilaciones de SciPy/HiGHS pueden proponer soluciones
+alternativas con los mismos objetivos; esas propuestas no sustituyen automáticamente los
+manifiestos versionados.

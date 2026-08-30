@@ -68,7 +68,7 @@ mismo Network Volume o al reiniciar un Pod cuyo Volume Disk se conserve.
 
 El comando predeterminado aprovisiona únicamente entrenamiento y ejecuta, en este orden:
 
-1. validación del dataset y de las particiones;
+1. validación del dataset y de las particiones congeladas, sin regenerarlas;
 2. caché Mel;
 3. CNN + Mel y su evaluación;
 4. ajuste del banco FBRS exclusivamente sobre entrenamiento;

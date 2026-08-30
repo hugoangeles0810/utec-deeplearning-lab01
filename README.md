@@ -89,6 +89,14 @@ estructura vacía. Para validar el dataset local y comprobar que coincide con lo
 uv run python -m anuraset_dl.prepare_data --config configs/baseline.yaml
 ```
 
+En hosts de ejecución se verifican las particiones ya congeladas sin volver a resolver el MILP:
+
+```bash
+uv run python -m anuraset_dl.prepare_data \
+  --config configs/baseline.yaml \
+  --verify-existing
+```
+
 La política de etiquetas, particiones y controles se detalla en
 [`docs/data-preparation.md`](docs/data-preparation.md), y la huella del corte utilizado por el
 proyecto se registra en [`docs/dataset-audit.md`](docs/dataset-audit.md).

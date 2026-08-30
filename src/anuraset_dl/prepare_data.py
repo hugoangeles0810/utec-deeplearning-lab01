@@ -13,6 +13,7 @@ from anuraset_dl.splits import (
     prepare_data,
     serialize_artifacts,
     sha256_file,
+    validate_existing_artifacts,
     validate_experiment_configs,
     write_artifacts_atomically,
 )
@@ -26,6 +27,11 @@ def main() -> None:
     parser.add_argument(
         "--force", action="store_true", help="Sobrescribe artefactos existentes diferentes"
     )
+    parser.add_argument(
+        "--verify-existing",
+        action="store_true",
+        help="Valida los manifiestos congelados sin volver a ejecutar el optimizador",
+    )
     args = parser.parse_args()
 
     config_path = Path(args.config)
@@ -37,6 +43,14 @@ def main() -> None:
 
     print("Validando metadatos e inventario de audio...")
     data = prepare_data(metadata_path, audio_dir, config, policy)
+    if args.verify_existing:
+        manifests = validate_existing_artifacts(data, policy)
+        counts = ", ".join(
+            f"{name}={len(manifests[name]):,}" for name in policy.split_names
+        )
+        print(f"Particiones congeladas verificadas: {counts}")
+        return
+
     print(f"Optimizando {len(data.recordings):,} grabaciones sin fugas...")
     result = optimize_assignments(data, policy)
     manifests = build_manifests(data, result, policy)

@@ -137,6 +137,19 @@ El generador se ejecuta con:
 uv run python -m anuraset_dl.prepare_data --config configs/baseline.yaml
 ```
 
+La generación mediante MILP es una operación de mantenimiento para crear o reemplazar
+particiones. Los hosts de entrenamiento no deben volver a optimizarlas: verifican los manifiestos
+congelados, sus coberturas y sus huellas mediante:
+
+```bash
+uv run python -m anuraset_dl.prepare_data \
+  --config configs/baseline.yaml \
+  --verify-existing
+```
+
+Esta separación evita que otra compilación de SciPy/HiGHS proponga una asignación alternativa
+con los mismos valores óptimos. El protocolo utiliza siempre los manifiestos versionados.
+
 La sección `preparation` de esa configuración declara la huella esperada de los metadatos, las
 proporciones, coberturas y etiquetas exploratorias. El generador utiliza la semilla `42` y
 produce los siguientes archivos versionables:

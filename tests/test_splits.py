@@ -11,12 +11,14 @@ from anuraset_dl.splits import (
     PreparationPolicy,
     PreparedData,
     build_manifests,
+    build_report,
     optimize_assignments,
     prepare_data,
     recording_id,
     recording_site,
     serialize_artifacts,
     sha256_file,
+    validate_existing_artifacts,
     validate_experiment_configs,
     validate_manifests,
     write_artifacts_atomically,
@@ -158,6 +160,22 @@ def test_manifest_validation_rejects_incorrect_recording_id(tmp_path: Path) -> N
 
     with pytest.raises(ValueError, match="recording_id incorrecto"):
         validate_manifests(manifests, data, policy)
+
+
+def test_existing_artifacts_are_verified_without_regenerating_splits(tmp_path: Path) -> None:
+    data = _prepared_data()
+    policy = _policy(tmp_path)
+    result = optimize_assignments(data, policy)
+    manifests = build_manifests(data, result, policy)
+    report = build_report(data, manifests, result, policy, "config-hash")
+    artifacts = serialize_artifacts(manifests, report, policy)
+    write_artifacts_atomically(artifacts)
+
+    verified = validate_existing_artifacts(data, policy)
+
+    assert {name: len(frame) for name, frame in verified.items()} == {
+        name: len(frame) for name, frame in manifests.items()
+    }
 
 
 def test_prepare_data_validates_audio_and_binary_labels(tmp_path: Path) -> None:
