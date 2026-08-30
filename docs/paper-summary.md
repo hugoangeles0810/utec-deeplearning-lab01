@@ -8,7 +8,7 @@ texture-aware modeling*. npj Acoustics 1, 22 (2025).
 
 Este documento resume el método original. No define por sí solo las decisiones del proyecto:
 la adaptación vigente a AnuraSet se registra en `docs/methodology.md` y
-`docs/fbrs.md`.
+en los documentos técnicos `docs/fbrs.md` y `docs/dlognet.md`.
 
 ## Problema y propuesta
 

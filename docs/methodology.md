@@ -1,7 +1,8 @@
 # Metodología
 
-Este documento registra el protocolo de datos, FBRS, DLoGNet, entrenamiento y
-evaluación. Las decisiones pendientes se resolverán antes de ejecutar el experimento final.
+Este documento registra el protocolo de datos, FBRS, DLoGNet, entrenamiento y evaluación usado
+por la matriz aceptada del 30 de agosto de 2026. Cualquier decisión metodológica posterior debe
+resolverse y documentarse antes de repetir o ampliar los experimentos.
 
 ## Objetivo y alcance
 
@@ -18,6 +19,8 @@ El objetivo no es reproducir los resultados del artículo. El dominio, las etiqu
 características del audio son diferentes, de modo que las decisiones del artículo se consideran
 puntos de partida y deben justificarse nuevamente para este conjunto de datos. `docs/paper-summary.md`
 documenta el método original y `docs/fbrs.md` desarrolla la adaptación de FBRS.
+La fundamentación, las ambigüedades del artículo y las verificaciones de la segunda contribución
+se desarrollan en `docs/dlognet.md`.
 
 ## Conjunto de datos y definición de la tarea
 
@@ -201,6 +204,10 @@ validación. Los parámetros vigentes de la etapa inicial y del banco se declara
 ablación se describen en `docs/fbrs.md`.
 
 ### Adaptación de DLoGNet
+
+`docs/dlognet.md` documenta el operador, la composición de BDCM, las decisiones de discretización,
+las diferencias frente al artículo y las ablaciones pendientes. Esta sección conserva las
+decisiones metodológicas que afectan al protocolo vigente.
 
 Las representaciones Mel y FBRS producen entradas de un canal con 128 bandas y 255 marcos para
 los clips de tres segundos. DLoGNet conserva las cinco etapas del artículo, con canales

@@ -7,7 +7,8 @@ multietiqueta de anuros sobre grabaciones con formato AnuraSet.
 
 El repositorio contiene la auditoría del corpus, las particiones reproducibles por grabación y
 los pipelines CNN/DLoGNet con representaciones log-Mel/FBRS. Las cuatro ejecuciones del protocolo
-vigente 80/20 permanecen pendientes y no existen resultados experimentales registrados.
+vigente 80/20 se completaron el 30 de agosto de 2026; sus resultados y observaciones se registran
+en [`docs/experiments.md`](docs/experiments.md).
 
 ## Preparación del entorno
 

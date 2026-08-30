@@ -315,17 +315,18 @@ congelado.
 La prueba de tonos puros debe barrer varias frecuencias, por ejemplo 500, 1000, 2000, 4000 y
 8000 Hz. Es la comprobación más directa contra errores en el orden de nodos.
 
-## Ablaciones pendientes
+## Comparaciones realizadas y ablaciones pendientes
 
-Antes de fijar FBRS para el experimento final conviene comparar, usando solo entrenamiento para
-ajustar cada variante:
+La matriz aceptada del 30 de agosto de 2026 comparó FBRS frente a Mel con la misma CNN y con
+DLoGNet, y comparó ambas arquitecturas sobre FBRS. Los resultados se registran en
+[`experiments.md`](experiments.md): FBRS no mejoró F1 macro frente a Mel en esa ejecución única.
 
-- FBRS frente a Mel con el mismo clasificador;
+Permanecen pendientes, usando solo entrenamiento para ajustar cada variante:
+
 - banco ajustado con ejemplos positivos frente a todo entrenamiento;
 - distintos niveles `L` compatibles con la resolución de FFT;
 - distintos números objetivo de bandas;
-- forma triangular frente a una alternativa rectangular, si se implementa;
-- DLoGNet con FBRS frente a una CNN con FBRS para separar el efecto de la arquitectura.
+- forma triangular frente a una alternativa rectangular, si se implementa.
 
 Los resultados y artefactos deben registrarse en `docs/experiments.md`.
 
@@ -337,5 +338,6 @@ un banco de filtros que opera sobre espectros de potencia y produce una represen
 logarítmica.
 
 Para AnuraSet se adopta un banco global, reproducible y ajustado solo con ejemplos positivos de
-entrenamiento. Las decisiones actuales —`db16`, `L = 8`, 128 bandas y filtros triangulares— son
-puntos de partida configurables, no resultados ya validados.
+entrenamiento. La combinación inicial —`db16`, `L = 8`, 128 bandas y filtros triangulares— fue
+evaluada en una ejecución de la matriz, pero sus alternativas y la estabilidad entre semillas
+siguen pendientes.

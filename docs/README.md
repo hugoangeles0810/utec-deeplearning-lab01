@@ -16,8 +16,10 @@ bibliográfico y el registro de ejecuciones.
    diferencias con este proyecto.
 5. [`fbrs.md`](fbrs.md): fundamentos de FBRS, adaptación a AnuraSet, decisiones configuradas y
    verificaciones requeridas.
-6. [`experiments.md`](experiments.md): requisitos, estado y resultados de los experimentos.
-7. [`runpod.md`](runpod.md): preparación operacional, ejecución remota y respaldo de resultados.
+6. [`dlognet.md`](dlognet.md): fundamentos de DLoGNet, adaptación multietiqueta, decisiones de
+   arquitectura y verificaciones requeridas.
+7. [`experiments.md`](experiments.md): requisitos, estado y resultados de los experimentos.
+8. [`runpod.md`](runpod.md): preparación operacional, ejecución remota y respaldo de resultados.
 
 ## Fuentes locales
 
@@ -35,6 +37,7 @@ versionar binarios grandes. La referencia bibliográfica y el DOI se conservan e
 | `data-preparation.md` | Selección de etiquetas y creación de particiones | Definir el entrenamiento o la evaluación |
 | `paper-summary.md` | Método, resultados y limitaciones del artículo | Transferir automáticamente decisiones al proyecto |
 | `fbrs.md` | Diseño técnico y adaptación de FBRS | Sustituir el protocolo general del proyecto |
+| `dlognet.md` | Diseño técnico y adaptación de DLoGNet | Sustituir el protocolo general del proyecto |
 | `experiments.md` | Configuraciones ejecutadas, artefactos y resultados | Introducir decisiones metodológicas sin documentarlas |
 | `runpod.md` | Aprovisionamiento operacional y exportación | Cambiar el protocolo experimental |
 
