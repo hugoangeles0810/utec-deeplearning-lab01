@@ -5,6 +5,20 @@ Forma parte del protocolo descrito en [`methodology.md`](methodology.md) y debe 
 ajustar representaciones, entrenar modelos o seleccionar umbrales. Los conteos y controles que
 sustentan estas decisiones se registran en [`dataset-audit.md`](dataset-audit.md).
 
+## Aprovisionamiento del corte auditado
+
+El corpus local puede descargarse y estructurarse mediante:
+
+```bash
+uv run python -m anuraset_dl.provision_data
+```
+
+`configs/dataset.yaml` fija los IDs y tamaños de los archivos remotos, la huella de `train.csv`,
+los inventarios esperados y el formato de audio. El aprovisionamiento admite reanudación, valida
+todo el resultado y no modifica las particiones versionadas. Después de completarlo debe
+ejecutarse el comando de preparación descrito en «Reproducibilidad y manifiestos» para comprobar
+el contrato metodológico y reproducir los manifiestos vigentes.
+
 ## Unidad de partición
 
 La unidad indivisible es `recording_id`, obtenido al eliminar el sufijo `_inicio_fin.wav` del

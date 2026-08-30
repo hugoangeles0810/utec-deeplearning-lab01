@@ -1,0 +1,36 @@
+schema_version: 1
+
+source:
+  provider: google_drive
+  download_url_template: https://drive.usercontent.google.com/download?id={file_id}&export=download&confirm=t
+
+destination:
+  root: dataset
+
+audio:
+  sample_rate: 22050
+  channels: 1
+  subtype: PCM_16
+  frames: 66150
+
+files:
+  metadata:
+    file_id: 1ZBUHlPde019q2ZAA22CI_TcGoDR3TopK
+    name: train.csv
+    size: 7358909
+    sha256: 38df5d408d9bf621cc11f78ed4cd766be63a8406512c1eb4d611d98e4486d276
+    rows: 62191
+  train:
+    file_id: 1fFTLJ0YcD1Ip2nA1BTq5E28z1KV8X0Zi
+    name: train.7z
+    size: 7069498436
+    extracted_bytes: 8230605704
+    wav_count: 62191
+    destination: train
+  test:
+    file_id: 1MBtbmSeqa1vPtUMQMg6qTnJNCxu0UlEj
+    name: test.7z
+    size: 3553511053
+    extracted_bytes: 4127412328
+    wav_count: 31187
+    destination: test

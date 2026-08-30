@@ -37,6 +37,23 @@ dataset/
     └── <external_filename>.wav
 ```
 
+El corte utilizado por el proyecto puede aprovisionarse directamente desde Google Drive:
+
+```bash
+uv run python -m anuraset_dl.provision_data
+```
+
+El comando descarga `train.csv`, `train.7z` y `test.7z`, reanuda transferencias interrumpidas,
+extrae cada archivo de forma secuencial y valida el resultado antes de publicarlo en `dataset/`.
+Es idempotente: si el corpus local ya es válido, no vuelve a descargarlo. Por defecto elimina los
+comprimidos después de una extracción correcta para reducir el uso de disco.
+
+Se recomienda disponer de al menos 18 GB libres. `--keep-archives` conserva los comprimidos y
+eleva el espacio necesario a unos 23 GB; `--only train` o `--only test` aprovisionan un solo
+subconjunto. `--dataset-root RUTA` cambia el destino, y `--force` permite reemplazar contenido
+local incompleto o incompatible de forma explícita. La fuente y las huellas esperadas se fijan en
+`configs/dataset.yaml` para evitar aceptar silenciosamente otro corte.
+
 `train.csv` debe contener una columna `filename` con nombres únicos y una columna binaria por
 etiqueta. Cada valor de `filename` debe identificar exactamente un WAV dentro de `dataset/train/`.
 Los audios del protocolo vigente son mono, tienen una frecuencia de muestreo de 22.05 kHz y una
