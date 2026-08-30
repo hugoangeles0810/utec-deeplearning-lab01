@@ -5,6 +5,7 @@ import numpy as np
 import pandas as pd
 import pytest
 import soundfile as sf
+import yaml
 
 from anuraset_dl.splits import (
     PreparationPolicy,
@@ -16,6 +17,7 @@ from anuraset_dl.splits import (
     recording_site,
     serialize_artifacts,
     sha256_file,
+    validate_experiment_configs,
     validate_manifests,
     write_artifacts_atomically,
 )
@@ -35,6 +37,41 @@ def test_recording_id_preserves_additional_component() -> None:
     filename = "INCT20955_20191123_041500_000_0_3.wav"
     assert recording_id(filename) == "INCT20955_20191123_041500_000"
     assert recording_site(recording_id(filename)) == "20955"
+
+
+def test_experiment_config_validation_ignores_provisioning_config(tmp_path: Path) -> None:
+    config_root = tmp_path / "configs"
+    config_root.mkdir()
+    baseline = {
+        "experiment": "baseline",
+        "data": {
+            "metadata": "dataset/train.csv",
+            "splits": {"train": "splits/train.csv", "validation": "splits/validation.csv"},
+            "num_labels": 1,
+            "excluded_labels": [],
+            "zero_label_policy": "keep_as_all_negative",
+        },
+    }
+    baseline_path = config_root / "baseline.yaml"
+    baseline_path.write_text(yaml.safe_dump(baseline), encoding="utf-8")
+    (config_root / "dataset.yaml").write_text(
+        yaml.safe_dump({"schema_version": 1, "source": {"provider": "google_drive"}}),
+        encoding="utf-8",
+    )
+
+    validate_experiment_configs(baseline_path, baseline)
+
+
+def test_experiment_config_validation_rejects_missing_data(tmp_path: Path) -> None:
+    config_root = tmp_path / "configs"
+    config_root.mkdir()
+    baseline = {"experiment": "baseline", "data": {}}
+    baseline_path = config_root / "baseline.yaml"
+    baseline_path.write_text(yaml.safe_dump(baseline), encoding="utf-8")
+    (config_root / "invalid.yaml").write_text("experiment: invalid\n", encoding="utf-8")
+
+    with pytest.raises(ValueError, match="sección data válida"):
+        validate_experiment_configs(baseline_path, baseline)
 
 
 def _policy(tmp_path: Path, metadata_hash: str = "0" * 64) -> PreparationPolicy:

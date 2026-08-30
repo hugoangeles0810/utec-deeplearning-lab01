@@ -148,8 +148,13 @@ def validate_experiment_configs(config_path: str | Path, baseline: dict[str, Any
     for path in sorted(Path(config_path).parent.glob("*.yaml")):
         with path.open(encoding="utf-8") as stream:
             candidate = yaml.safe_load(stream)
+        if not isinstance(candidate, dict) or "experiment" not in candidate:
+            continue
+        candidate_data = candidate.get("data")
+        if not isinstance(candidate_data, dict):
+            raise ValueError(f"{path} no contiene una sección data válida")
         for field in comparable:
-            if candidate["data"].get(field) != expected_data.get(field):
+            if candidate_data.get(field) != expected_data.get(field):
                 raise ValueError(f"{path} difiere del baseline en data.{field}")
 
 
