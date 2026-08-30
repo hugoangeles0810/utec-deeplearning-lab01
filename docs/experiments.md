@@ -14,8 +14,8 @@ Cada experimento debe registrar como mínimo:
 
 | Experimento | Representación | Modelo | Estado | Resultado |
 |---|---|---|---|---|
-| `cnn_mel_baseline` | Mel | CNN | Histórico 80/10/10; requiere reejecución | No comparable con el protocolo vigente |
-| `cnn_fbrs` | FBRS | CNN | Histórico 80/10/10; requiere reejecución | No comparable con el protocolo vigente |
+| `cnn_mel_baseline` | Mel | CNN | Ejecución pendiente | — |
+| `cnn_fbrs` | FBRS | CNN | Ejecución pendiente | — |
 | `dlognet_mel` | Mel | DLoGNet | Pipeline implementado; ejecución pendiente | — |
 | `dlognet_fbrs` | FBRS | DLoGNet | Pipeline implementado; ejecución pendiente | — |
 
@@ -33,87 +33,23 @@ los bloques, serialización mediante checkpoint y ejecuciones sintéticas comple
 como con un banco FBRS congelado. Las decisiones exactas de adaptación se registran en
 [`methodology.md`](methodology.md#adaptación-de-dlognet).
 
-Las ejecuciones de 50 épocas todavía no se han realizado. Debe ejecutarse primero
-`dlognet_mel` para medir el efecto de la arquitectura sin cambiar simultáneamente la
-representación y después `dlognet_fbrs`, reutilizando el banco ya ajustado únicamente con
-entrenamiento.
+Las ejecuciones de 50 épocas todavía no se han realizado con el protocolo vigente. Debe
+ejecutarse primero `cnn_mel_baseline`, seguido de `cnn_fbrs`, `dlognet_mel` y `dlognet_fbrs`.
+Las variantes Mel comparten su caché; las variantes FBRS reutilizan un banco ajustado únicamente
+con entrenamiento y su caché correspondiente.
 
-## Cambio de protocolo 80/20
+## Protocolo vigente y estado de los artefactos
 
-El protocolo vigente divide `dataset/train/` en entrenamiento y validación 80/20. El test es un
-conjunto externo sin etiquetas y se utiliza únicamente para inferencia. Las ejecuciones descritas
-a continuación quedan preservadas como antecedentes históricos: sus checkpoints, banco FBRS y
-métricas están vinculados a los antiguos manifiestos 80/10/10 y deben regenerarse antes de hacer
-comparaciones bajo el protocolo vigente.
+El protocolo divide `dataset/train/` en entrenamiento y validación 80/20. El test es un conjunto
+externo sin etiquetas y se utiliza únicamente para inferencia. No existen checkpoints, bancos
+FBRS, cachés de representaciones, métricas ni runs de MLflow aceptados para este protocolo.
 
-## Estado del baseline CNN + Mel
+El pipeline ejecutable incluye carga por manifiestos, transformaciones log-Mel y FBRS, modelos
+CNN y DLoGNet, entrenamiento con checkpoints, selección de umbrales y evaluación interna sobre
+validación. Las pruebas sintéticas verifican estos componentes, pero no constituyen resultados
+experimentales.
 
-El pipeline ejecutable incluye carga por manifiestos, transformación log-Mel, CNN, entrenamiento
-con checkpoints, selección de umbrales y evaluación interna sobre validación. Su prueba
-de integración utiliza un corpus sintético pequeño y no constituye un resultado experimental.
-
-El seguimiento local usa el experimento MLflow `anuraset_dl`. Entrenamiento y evaluación deben
-compartir el identificador almacenado en el checkpoint. MLflow complementa el registro documental:
-no sustituye este archivo ni convierte una prueba sintética en una ejecución experimental.
-
-La ejecución de 50 épocas sobre el corpus auditado se realizó el 28 de agosto de 2026 en MPS. El
-mejor checkpoint corresponde a la época 46, con pérdida de validación `0.080517`. El entrenamiento
-duró `4607.06` segundos y la evaluación `13.69` segundos. En validación se obtuvo F1 macro
-`0.558183` y mAP `0.554192`; en prueba, F1 macro `0.506981` y mAP `0.557045`. Los artefactos
-canónicos se encuentran en `outputs/checkpoints/cnn_mel_baseline/` y
-`outputs/metrics/cnn_mel_baseline.json`; el run de MLflow es
-`534b0f7702cc4835bcbfbbe084323ee0`. No se registraron anomalías de ejecución.
-
-## Estado de CNN + FBRS
-
-La implementación se validó antes de la ejecución con las 50 pruebas del proyecto y `ruff`. Las
-pruebas específicas de FBRS comprueban conservación y normalización de energía, cobertura y orden
-de la partición, restricción de hermanos, localización de tonos puros, estabilidad ante silencio,
-reproducibilidad, serialización, rechazo de un manifiesto de entrenamiento alterado y una ejecución
-sintética de extremo a extremo. Todas las verificaciones terminaron correctamente.
-
-En la ejecución histórica, el banco global se ajustó entre el 28 y el 29 de agosto de 2026 con
-`configs/cnn_fbrs.yaml`, semilla `42` y exclusivamente los 31,573 clips de entrenamiento con al
-menos un positivo en la taxonomía activa (`active_positive_training`). No se utilizaron clips de
-validación ni prueba. El artefacto contiene 128 filtros finitos y no vacíos sobre 513 bins, cubre
-de 0 a 11,025 Hz y tiene SHA-256
-`3497f1e4ddcb491c02fc76bfdf786b91be3905d3039b34bf573770f0334c4584`. Se encuentra en
-`outputs/filterbanks/fbrs_db16_l8_b128.pt` y está vinculado por huella al CSV de metadatos y a
-`splits/train.csv`.
-
-El entrenamiento histórico completo de 50 épocas se ejecutó en MPS con los manifiestos
-`splits/train.csv`, `splits/validation.csv` y `splits/test.csv`. Duró `4958.01` segundos. El mejor
-checkpoint fue el de la época 41, con pérdida de validación `0.078872`; la evaluación duró
-`13.37` segundos. Los artefactos canónicos se encuentran en
-`outputs/checkpoints/cnn_fbrs/` y `outputs/metrics/cnn_fbrs.json`; el run de MLflow es
-`4715f505c6a64586bb4a9a649bf4a6bd`.
-
-La comparación agregada contra `cnn_mel_baseline`, con las mismas etiquetas, particiones,
-arquitectura y protocolo de umbrales, es:
-
-| Partición | Métrica | Mel | FBRS | Diferencia FBRS − Mel |
-|---|---|---:|---:|---:|
-| Validación | Precisión macro | 0.549535 | 0.581089 | +0.031555 |
-| Validación | Exhaustividad macro | 0.660394 | 0.693056 | +0.032662 |
-| Validación | F1 macro | 0.558183 | 0.599570 | +0.041387 |
-| Validación | mAP | 0.554192 | 0.581325 | +0.027133 |
-| Prueba | Precisión macro | 0.503555 | 0.464745 | −0.038810 |
-| Prueba | Exhaustividad macro | 0.683529 | 0.643120 | −0.040409 |
-| Prueba | F1 macro | 0.506981 | 0.497746 | −0.009235 |
-| Prueba | mAP | 0.557045 | 0.530344 | −0.026701 |
-
-FBRS mejora las cuatro métricas agregadas de validación, pero no transfiere esa mejora a prueba:
-allí reduce tanto F1 macro como mAP. Por tanto, esta ejecución no demuestra una mejora de
-generalización de FBRS sobre Mel con la CNN. El entrenamiento FBRS fue `350.95` segundos
-(`7.62 %`) más lento; la duración de evaluación fue similar.
-
-Las principales limitaciones son que existe una sola ejecución por representación y no pueden
-estimarse variabilidad ni significancia; el banco solo se comparó en su variante inicial
-`active_positive_training`, sin la ablación con todo entrenamiento; tampoco se han barrido nivel,
-número de bandas o forma de filtro. La selección del mejor checkpoint y de los umbrales usa la
-misma validación, y la divergencia entre validación y prueba aconseja no ajustar retrospectivamente
-estas decisiones a partir del resultado de prueba. El cálculo FBRS de esta ejecución histórica se
-realizó en línea, sin caché y con `num_workers: 0`, lo que limitó la eficiencia. La caché
-persistente se implementó después y se utilizará en las reejecuciones del protocolo 80/20. MPS no
-aportó métricas de GPU a MLflow, aunque
-el run, los parámetros, tiempos y resultados sí quedaron registrados.
+El seguimiento local utiliza el experimento MLflow `anuraset_dl`. Entrenamiento y evaluación
+deben compartir el identificador almacenado en el checkpoint. MLflow complementa el registro
+documental: no sustituye este archivo ni convierte una prueba sintética en una ejecución
+experimental.

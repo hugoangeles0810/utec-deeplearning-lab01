@@ -6,8 +6,8 @@ multietiqueta de anuros sobre grabaciones con formato AnuraSet.
 ## Estado
 
 El repositorio contiene la auditoría del corpus, las particiones reproducibles por grabación y
-los pipelines CNN/DLoGNet con representaciones log-Mel/FBRS. Las dos ejecuciones CNN están
-registradas; las ejecuciones completas de DLoGNet permanecen pendientes.
+los pipelines CNN/DLoGNet con representaciones log-Mel/FBRS. Las cuatro ejecuciones del protocolo
+vigente 80/20 permanecen pendientes y no existen resultados experimentales registrados.
 
 ## Preparación del entorno
 
