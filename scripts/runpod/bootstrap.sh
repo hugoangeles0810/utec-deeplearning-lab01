@@ -6,7 +6,7 @@ PROJECT_ROOT="$(cd -- "${SCRIPT_DIR}/../.." && pwd)"
 export UV_PROJECT_ENVIRONMENT="${UV_PROJECT_ENVIRONMENT:-/opt/anuraset-venv}"
 
 if [[ ! -d /workspace ]]; then
-  echo "No existe /workspace; adjunte un Network Volume al crear el Pod." >&2
+  echo "No existe /workspace; configure un Volume Disk o Network Volume en esa ruta." >&2
   exit 1
 fi
 

@@ -14,7 +14,8 @@ La infraestructura se crea manualmente desde la consola de Runpod:
   alternativas compatibles;
 - **SSH Terminal Access** habilitado;
 - container disk de al menos 20 GB;
-- Network Volume de 60 GB montado en `/workspace`.
+- almacenamiento persistente de 60 GB montado en `/workspace`, mediante **Volume Disk** o
+  **Network Volume**.
 
 El Python 3.11 y PyTorch 2.4.0 incluidos en el template sirven únicamente para construir la
 imagen base y no se reutilizan como entorno del proyecto. `bootstrap.sh` instala Python 3.12 en
@@ -22,9 +23,17 @@ imagen base y no se reutilizan como entorno del proyecto. `bootstrap.sh` instala
 `pyproject.toml` y `uv.lock`. El host debe exponer un driver NVIDIA compatible con CUDA 12.4;
 puede comprobarse con `nvidia-smi` antes de ejecutar el bootstrap.
 
-El Network Volume conserva repositorio, dataset, cachés y resultados cuando se elimina el Pod. El
-entorno virtual se crea en `/opt/anuraset-venv`, sobre el container disk, porque puede regenerarse
-desde `uv.lock` y no necesita ocupar el volumen persistente.
+El flujo es agnóstico al tipo de volumen: solo exige que `/workspace` exista y tenga al menos
+45 GB libres. Un Volume Disk conserva los archivos al detener o reiniciar el mismo Pod, pero los
+elimina al terminarlo. Un Network Volume sobrevive independientemente del Pod y puede conectarse
+a otro Pod compatible. Para una ejecución completa en una sola máquina puede utilizarse Volume
+Disk; para cambiar de máquina o conservar los artefactos después de terminarla debe utilizarse
+Network Volume o exportarse previamente el paquete de resultados.
+
+El entorno virtual se crea en `/opt/anuraset-venv`, sobre el container disk, porque puede
+regenerarse desde `uv.lock` y no necesita ocupar el almacenamiento persistente. Si el container
+disk se reinicializa, basta con volver a ejecutar `bootstrap.sh`; el repositorio, dataset, cachés
+y resultados permanecen en `/workspace` mientras el volumen correspondiente siga existiendo.
 
 El dataset de entrenamiento ocupa aproximadamente 8.23 GB y cada una de las cachés Mel y FBRS
 ocupa unos 8.12 GB. El aprovisionamiento requiere espacio temporal adicional mientras extrae el
@@ -53,7 +62,7 @@ scripts/runpod/bootstrap.sh
 El script instala las dependencias operativas, Python 3.12 y el entorno bloqueado por `uv.lock`.
 Después comprueba PyTorch 2.6.0, el runtime CUDA 12.4, la disponibilidad efectiva de la GPU y
 ejecuta `pytest` y `ruff`. Es idempotente y puede volver a ejecutarse al crear otro Pod sobre el
-mismo Network Volume.
+mismo Network Volume o al reiniciar un Pod cuyo Volume Disk se conserve.
 
 ## Ejecución completa
 
@@ -194,9 +203,12 @@ Antes de eliminar recursos:
 2. verificar la existencia de checkpoints y métricas de los experimentos seleccionados;
 3. copiar el paquete y su SHA-256 a Google Drive o al equipo local;
 4. verificar la copia descargada;
-5. terminar el Pod para detener el cobro de GPU;
-6. mantener el Network Volume únicamente mientras queden experimentos pendientes;
-7. eliminar el volumen al concluir el proyecto para detener su costo mensual.
+5. detener el Pod para detener el cobro de GPU;
+6. si se utiliza Volume Disk, no terminar el Pod hasta verificar el respaldo, porque esa acción
+   elimina el volumen junto con sus datos;
+7. si se utiliza Network Volume, terminar el Pod después del respaldo y conservar el volumen
+   únicamente mientras queden experimentos pendientes;
+8. eliminar el almacenamiento persistente al concluir el proyecto para detener su costo.
 
 ## Portabilidad
 
