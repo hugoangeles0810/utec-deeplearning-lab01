@@ -12,6 +12,8 @@ import torch
 from torch import Tensor, nn
 from torch.utils.data import Dataset
 
+from anuraset_dl.feature_cache import cache_enabled, cached_split_path
+
 
 def active_labels(metadata: pd.DataFrame, excluded_labels: list[str]) -> tuple[str, ...]:
     """Deriva la taxonomía activa conservando el orden de los metadatos."""
@@ -156,6 +158,7 @@ class AnuraDataset(Dataset[tuple[Tensor, Tensor]]):
         config: dict[str, Any],
         split: str,
         transform: nn.Module | None = None,
+        use_feature_cache: bool | None = None,
     ) -> None:
         if split not in config["data"]["splits"]:
             raise ValueError(f"Partición no configurada: {split}")
@@ -177,27 +180,59 @@ class AnuraDataset(Dataset[tuple[Tensor, Tensor]]):
             how="left",
             validate="one_to_one",
         )
+        self.paths = tuple(
+            Path(config["data"]["root"]) / "train" / filename
+            for filename in self.rows["filename"]
+        )
+        self.targets = self.rows.loc[:, self.labels].to_numpy(dtype=np.float32)
         self.audio_dir = Path(config["data"]["root"]) / "train"
         self.sample_rate = int(config["data"]["sample_rate"])
         self.expected_samples = round(
             self.sample_rate * float(config["data"]["clip_seconds"])
         )
-        self.transform = transform or build_transform(config)
+        use_feature_cache = (
+            cache_enabled(config) if use_feature_cache is None else use_feature_cache
+        )
+        self.cache_path: Path | None = None
+        self.cache_shape: tuple[int, ...] | None = None
+        self._cached_features: np.ndarray | None = None
+        if use_feature_cache:
+            self.cache_path, self.cache_shape = cached_split_path(
+                config, split, len(self.rows)
+            )
+            self.transform = None
+        else:
+            self.transform = transform or build_transform(config)
 
     def __len__(self) -> int:
         return len(self.rows)
 
     def __getitem__(self, index: int) -> tuple[Tensor, Tensor]:
-        row = self.rows.iloc[index]
-        path = self.audio_dir / row["filename"]
+        targets = torch.from_numpy(self.targets[index])
+        if self.cache_path is not None:
+            if self._cached_features is None:
+                self._cached_features = np.load(
+                    self.cache_path, mmap_mode="r", allow_pickle=False
+                )
+            features = torch.from_numpy(np.array(self._cached_features[index], copy=True))
+            return features, targets
+
+        path = self.paths[index]
         waveform, sample_rate = sf.read(path, dtype="float32", always_2d=False)
         if sample_rate != self.sample_rate or waveform.ndim != 1:
             raise ValueError(f"Audio incompatible: {path}")
         if len(waveform) != self.expected_samples:
             raise ValueError(f"Duración incompatible: {path}")
+        if self.transform is None:
+            raise RuntimeError("La transformación directa no está inicializada")
         features = self.transform(torch.from_numpy(waveform)).unsqueeze(0)
-        targets = torch.tensor(row.loc[list(self.labels)].to_numpy(dtype=np.float32))
         return features, targets
+
+    def __getstate__(self) -> dict[str, Any]:
+        """Evita serializar un mapeo abierto al crear workers del DataLoader."""
+        state = self.__dict__.copy()
+        state["_cached_features"] = None
+        return state
 
 
 class UnlabeledAudioDataset(Dataset[tuple[Tensor, str]]):

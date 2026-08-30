@@ -63,6 +63,7 @@ proyecto se registra en [`docs/dataset-audit.md`](docs/dataset-audit.md).
 uv run pytest
 uv run jupyter lab
 uv run --group tracking python -m anuraset_dl.prepare_data --config configs/baseline.yaml
+uv run python -m anuraset_dl.precompute_features --config configs/baseline.yaml
 uv run --group tracking python -m anuraset_dl.train --config configs/baseline.yaml
 uv run --group tracking python -m anuraset_dl.evaluate --config configs/baseline.yaml
 uv run python -m anuraset_dl.predict --config configs/baseline.yaml --input-dir dataset/test
@@ -73,6 +74,7 @@ CNN:
 
 ```bash
 uv run python -m anuraset_dl.fbrs --config configs/cnn_fbrs.yaml
+uv run python -m anuraset_dl.precompute_features --config configs/cnn_fbrs.yaml
 uv run --group tracking python -m anuraset_dl.train --config configs/cnn_fbrs.yaml
 uv run --group tracking python -m anuraset_dl.evaluate --config configs/cnn_fbrs.yaml
 ```
@@ -86,12 +88,23 @@ uv run --group tracking python -m anuraset_dl.train --config configs/dlognet_fbr
 uv run --group tracking python -m anuraset_dl.evaluate --config configs/dlognet_fbrs.yaml
 ```
 
+`dlognet_mel` reutiliza la caché Mel creada con `baseline.yaml` y `dlognet_fbrs` reutiliza la
+caché FBRS creada con `cnn_fbrs.yaml`: su identidad depende de los datos y de la representación,
+no de la arquitectura. El comando de precomputación es idempotente y reutiliza un artefacto
+válido existente.
+
 `dlognet_fbrs` reutiliza el banco congelado declarado en `features.bank_path`; no debe volver a
 ajustarse con validación ni con el test externo.
 
 El ajuste se detiene si el banco ya existe; `--force` permite reemplazarlo de forma explícita.
 Entrenamiento y evaluación verifican la huella del banco congelado además de las huellas de los
 metadatos y manifiestos.
+
+Las representaciones se persisten como arreglos NPY `float32` mapeados en memoria bajo
+`outputs/features/`. La caché registra las huellas de metadatos, particiones y parámetros de la
+representación; FBRS incorpora además la huella del banco congelado. Si cambia cualquiera de
+esas entradas, el pipeline exige crear una caché nueva. Estos artefactos son locales y están
+excluidos de Git.
 
 El comando de preparación valida el CSV y todas las cabeceras de audio antes de reproducir los
 manifiestos. El entrenamiento guarda `best.pt`, `last.pt` y el historial bajo
@@ -127,3 +140,4 @@ checkpoints permanecen bajo `outputs/checkpoints/`.
 - `docs/`: documentación metodológica y técnica; véase [`docs/README.md`](docs/README.md).
 - `tests/`: pruebas automáticas.
 - `outputs/`: bancos de filtros, checkpoints, métricas y figuras generadas.
+- `outputs/features/`: cachés locales de representaciones Mel y FBRS.

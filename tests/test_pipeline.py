@@ -9,6 +9,7 @@ import soundfile as sf
 
 from anuraset_dl.evaluate import evaluate_experiment
 from anuraset_dl.fbrs import fit_fbrs_bank
+from anuraset_dl.precompute_features import precompute_feature_cache
 from anuraset_dl.predict import predict_unlabeled
 from anuraset_dl.runtime import config_fingerprint, sha256_file
 from anuraset_dl.train import train_experiment
@@ -155,11 +156,18 @@ def test_fbrs_completes_end_to_end_with_a_frozen_bank(
     }
     _select_model(config, model_name)
     fitted = fit_fbrs_bank(config)
+    config["features"]["cache"] = {
+        "enabled": True,
+        "root": str(tmp_path / "features"),
+        "dtype": "float32",
+    }
+    cached = precompute_feature_cache(config)
 
     training = train_experiment(config)
     evaluation = evaluate_experiment(config, training["best_checkpoint"])
 
     assert fitted["fit_examples"] == 4
+    assert cached["created"] is True
     assert Path(training["best_checkpoint"]).is_file()
     assert Path(evaluation["metrics_path"]).is_file()
     assert evaluation["data_fingerprints"]["feature_artifact"]["sha256"] == fitted["sha256"]
@@ -172,6 +180,11 @@ def test_runtime_options_do_not_change_semantic_fingerprint(tmp_path: Path) -> N
     changed["training"]["num_workers"] = 3
     changed["training"]["checkpoint_dir"] = str(tmp_path / "other-checkpoints")
     changed["evaluation"]["metrics_dir"] = str(tmp_path / "other-metrics")
+    changed["features"]["cache"] = {
+        "enabled": True,
+        "root": str(tmp_path / "features"),
+        "dtype": "float32",
+    }
     changed["tracking"] = {
         "enabled": True,
         "experiment_name": "synthetic-tests",

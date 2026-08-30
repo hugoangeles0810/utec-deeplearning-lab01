@@ -33,6 +33,10 @@ features:
   filter_shape: triangular
   filter_normalization: peak
   bank_path: outputs/filterbanks/fbrs_db16_l8_b128.pt
+  cache:
+    enabled: true
+    root: outputs/features
+    dtype: float32
 
 model:
   name: cnn

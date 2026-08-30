@@ -133,6 +133,18 @@ def validate_config(config: dict[str, Any]) -> None:
     else:
         raise ValueError(f"Tipo de representación no reconocido: {feature_type}")
 
+    cache = features.get("cache")
+    if cache is not None:
+        if not isinstance(cache, dict):
+            raise ValueError("features.cache debe ser un objeto YAML")
+        _require_fields(cache, ("enabled", "root", "dtype"), "features.cache")
+        if not isinstance(cache["enabled"], bool):
+            raise ValueError("features.cache.enabled debe ser booleano")
+        if not isinstance(cache["root"], str) or not cache["root"].strip():
+            raise ValueError("features.cache.root debe ser una ruta no vacía")
+        if cache["dtype"] != "float32":
+            raise ValueError("La implementación vigente requiere features.cache.dtype=float32")
+
     training = _require_mapping(config, "training")
     _require_fields(
         training,

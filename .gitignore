@@ -27,3 +27,5 @@ outputs/predictions/*
 outputs/figures/*
 !outputs/figures/.gitkeep
 outputs/mlflow/
+outputs/features/*
+!outputs/features/.gitkeep

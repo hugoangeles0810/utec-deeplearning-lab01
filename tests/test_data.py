@@ -7,6 +7,7 @@ import soundfile as sf
 import torch
 
 from anuraset_dl.data import AnuraDataset, LogMelSpectrogram, mel_filterbank
+from anuraset_dl.precompute_features import precompute_feature_cache
 
 
 def _config(tmp_path: Path) -> dict:
@@ -99,3 +100,62 @@ def test_dataset_rejects_wrong_label_count(tmp_path: Path) -> None:
         assert "num_labels" in str(error)
     else:
         raise AssertionError("Se esperaba rechazar una taxonomía inconsistente")
+
+
+def test_feature_cache_preserves_exact_float32_features(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    audio_dir = tmp_path / "dataset" / "train"
+    audio_dir.mkdir(parents=True)
+    waveform = np.sin(2 * np.pi * 440 * np.arange(2000) / 8000).astype(np.float32)
+    sf.write(audio_dir / "clip.wav", waveform, 8000, subtype="PCM_16")
+    pd.DataFrame([{"filename": "clip.wav", "frog_a": 1, "frog_b": 0}]).to_csv(
+        config["data"]["metadata"], index=False
+    )
+    pd.DataFrame([{"filename": "clip.wav", "recording_id": "recording"}]).to_csv(
+        config["data"]["splits"]["train"], index=False
+    )
+    direct_features, direct_targets = AnuraDataset(config, "train")[0]
+    config["features"]["cache"] = {
+        "enabled": True,
+        "root": str(tmp_path / "features"),
+        "dtype": "float32",
+    }
+
+    created = precompute_feature_cache(config)
+    cached_features, cached_targets = AnuraDataset(config, "train")[0]
+    reused = precompute_feature_cache(config)
+
+    assert created["created"] is True
+    assert reused["created"] is False
+    assert torch.equal(cached_features, direct_features)
+    assert torch.equal(cached_targets, direct_targets)
+    assert cached_features.dtype == torch.float32
+    assert Path(created["path"], "manifest.json").is_file()
+
+
+def test_feature_cache_rejects_changed_representation(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    audio_dir = tmp_path / "dataset" / "train"
+    audio_dir.mkdir(parents=True)
+    sf.write(audio_dir / "clip.wav", np.zeros(2000, dtype=np.float32), 8000)
+    pd.DataFrame([{"filename": "clip.wav", "frog_a": 1, "frog_b": 0}]).to_csv(
+        config["data"]["metadata"], index=False
+    )
+    pd.DataFrame([{"filename": "clip.wav", "recording_id": "recording"}]).to_csv(
+        config["data"]["splits"]["train"], index=False
+    )
+    config["features"]["cache"] = {
+        "enabled": True,
+        "root": str(tmp_path / "features"),
+        "dtype": "float32",
+    }
+    precompute_feature_cache(config)
+    changed = deepcopy(config)
+    changed["features"]["hop_length"] = 32
+
+    try:
+        AnuraDataset(changed, "train")
+    except FileNotFoundError as error:
+        assert "precompute_features" in str(error)
+    else:
+        raise AssertionError("Se esperaba rechazar una caché de otra representación")

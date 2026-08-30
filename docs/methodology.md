@@ -126,6 +126,29 @@ las rutas de salida porque no alteran la definición del modelo ni del experimen
 cambiar de CPU, MPS o CUDA durante evaluación sin aceptar cambios silenciosos en datos, particiones,
 representación, arquitectura o hiperparámetros.
 
+## Caché de representaciones
+
+Las representaciones log-Mel y FBRS son deterministas bajo la configuración vigente y no se
+aplican aumentos aleatorios sobre el audio. Por ello se calculan una vez y se persisten como
+arreglos NPY `float32` mapeados en memoria, en lugar de volver a leer y transformar cada WAV en
+cada época. No se utilizan PNG, JPEG ni otra cuantización de imagen.
+
+La identidad de cada caché incorpora las huellas SHA-256 de los metadatos y de todos los
+manifiestos configurados, los parámetros que determinan la representación y, para FBRS, la
+huella del banco global congelado. Cada partición conserva el orden exacto de su manifiesto. Una
+caché ausente, incompleta o vinculada a entradas diferentes invalida la carga y debe regenerarse;
+no se acepta silenciosamente una representación obsoleta.
+
+La caché es una optimización operacional: `features.cache.enabled`, `features.cache.root` y
+`features.cache.dtype` no forman parte de la huella semántica mientras el tipo sea `float32`.
+Este formato conserva los valores producidos por la ruta directa. Un cambio futuro a precisión
+reducida sí requeriría una decisión metodológica explícita y verificaciones de equivalencia.
+
+Para Mel, CNN y DLoGNet comparten el mismo artefacto. Para FBRS, primero se ajusta el banco
+exclusivamente con entrenamiento, después se congela y finalmente se precalculan entrenamiento y
+validación con ese mismo banco. La aplicación del banco congelado sobre validación no ajusta
+estadísticas ni introduce fuga de información.
+
 ## Seguimiento de experimentos con MLflow
 
 MLflow Tracking se utiliza como una capa operacional opcional. Cada entrenamiento crea un run y

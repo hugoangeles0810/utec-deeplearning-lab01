@@ -76,3 +76,11 @@ def test_config_rejects_non_boolean_tracking_switch() -> None:
 
     with pytest.raises(ValueError, match="tracking.enabled debe ser booleano"):
         validate_config(config)
+
+
+def test_config_rejects_lossy_feature_cache() -> None:
+    config = deepcopy(load_config(ROOT / "configs" / "baseline.yaml"))
+    config["features"]["cache"]["dtype"] = "float16"
+
+    with pytest.raises(ValueError, match="cache.dtype=float32"):
+        validate_config(config)

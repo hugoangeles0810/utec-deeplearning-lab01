@@ -28,6 +28,10 @@ features:
   mel_scale: htk
   filter_normalization: none
   log_epsilon: 1.0e-10
+  cache:
+    enabled: true
+    root: outputs/features
+    dtype: float32
 
 model:
   name: dlognet

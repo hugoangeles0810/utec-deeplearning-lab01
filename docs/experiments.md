@@ -112,6 +112,8 @@ estimarse variabilidad ni significancia; el banco solo se comparó en su variant
 `active_positive_training`, sin la ablación con todo entrenamiento; tampoco se han barrido nivel,
 número de bandas o forma de filtro. La selección del mejor checkpoint y de los umbrales usa la
 misma validación, y la divergencia entre validación y prueba aconseja no ajustar retrospectivamente
-estas decisiones a partir del resultado de prueba. El cálculo FBRS se realiza en línea, sin caché
-y con `num_workers: 0`, lo que limita la eficiencia. MPS no aportó métricas de GPU a MLflow, aunque
+estas decisiones a partir del resultado de prueba. El cálculo FBRS de esta ejecución histórica se
+realizó en línea, sin caché y con `num_workers: 0`, lo que limitó la eficiencia. La caché
+persistente se implementó después y se utilizará en las reejecuciones del protocolo 80/20. MPS no
+aportó métricas de GPU a MLflow, aunque
 el run, los parámetros, tiempos y resultados sí quedaron registrados.

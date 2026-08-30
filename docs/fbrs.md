@@ -265,8 +265,13 @@ La lógica definitiva reside en `src/anuraset_dl/fbrs.py` y sigue estas etapas:
 2. agregación de energía por nodo;
 3. construcción de una partición válida con el número objetivo de bandas;
 4. proyección de las bandas a una matriz de filtros;
-5. transformación de cada clip mediante el banco congelado;
-6. persistencia del banco y de sus metadatos en `outputs/`.
+5. persistencia del banco y de sus metadatos en `outputs/`;
+6. precomputación de cada partición mediante el banco congelado;
+7. carga mapeada de la caché `float32` durante entrenamiento y evaluación.
+
+La caché FBRS se crea únicamente después de ajustar el banco. Su identidad incluye la huella del
+banco, de modo que reemplazarlo exige generar otra caché y no puede reutilizar silenciosamente
+las características anteriores.
 
 Cada artefacto del banco registra:
 
@@ -283,6 +288,7 @@ El ajuste se ejecuta explícitamente antes del entrenamiento:
 
 ```bash
 uv run python -m anuraset_dl.fbrs --config configs/cnn_fbrs.yaml
+uv run python -m anuraset_dl.precompute_features --config configs/cnn_fbrs.yaml
 ```
 
 El comando lee audio únicamente del manifiesto de entrenamiento y, con

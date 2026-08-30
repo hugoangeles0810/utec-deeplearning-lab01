@@ -84,6 +84,7 @@ def _semantic_config(config: dict[str, Any]) -> dict[str, Any]:
     """Excluye opciones operativas que no cambian el experimento definido."""
     semantic = deepcopy(config)
     semantic.pop("tracking", None)
+    semantic.get("features", {}).pop("cache", None)
     training = semantic.get("training", {})
     for field in ("device", "num_workers", "checkpoint_dir"):
         training.pop(field, None)
