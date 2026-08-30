@@ -216,9 +216,9 @@ presenta dos problemas:
 
 Redimensionar las imágenes resuelve solo el primer problema y puede ocultar el segundo. Para que
 la geometría frecuencial sea comparable entre ejemplos, este proyecto ajusta un banco único con
-estadísticas agregadas de entrenamiento y después lo congela para validación y prueba.
+estadísticas agregadas de entrenamiento y después lo congela para validación y test externo.
 
-No debe utilizarse información de validación o prueba para ajustar el banco.
+No debe utilizarse información de validación ni del test externo para ajustar el banco.
 
 ### Uso de ejemplos positivos
 
@@ -288,7 +288,7 @@ uv run python -m anuraset_dl.fbrs --config configs/cnn_fbrs.yaml
 El comando lee audio únicamente del manifiesto de entrenamiento y, con
 `active_positive_training`, descarta antes de cargar audio cualquier clip totalmente negativo
 para la taxonomía activa. Sin `--force` no reemplaza un artefacto existente. El pipeline valida
-la huella del banco al entrenar y evaluar, de modo que validación y prueba siempre usan el banco
+la huella del banco al entrenar, evaluar e inferir, de modo que validación y test externo usan el banco
 congelado.
 
 ## Verificación requerida

@@ -9,7 +9,7 @@ sustentan estas decisiones se registran en [`dataset-audit.md`](dataset-audit.md
 
 La unidad indivisible es `recording_id`, obtenido al eliminar el sufijo `_inicio_fin.wav` del
 nombre de cada segmento. Todos los clips provenientes de una misma grabación deben pertenecer
-exclusivamente a entrenamiento, validación o prueba.
+exclusivamente a entrenamiento o validación.
 
 La extracción no debe asumir una cantidad fija de componentes separados por `_`: la auditoría
 identificó una grabación cuyo prefijo contiene un componente adicional.
@@ -32,7 +32,7 @@ Las etiquetas se clasifican de la siguiente forma:
 | Sin evidencia | 0 | Excluida |
 
 Esta clasificación es una decisión de curación del corpus realizada antes de congelar las
-particiones. No debe modificarse posteriormente en función de resultados sobre prueba.
+particiones. No debe modificarse posteriormente en función de resultados externos.
 
 ### Taxonomía principal
 
@@ -79,19 +79,19 @@ desagregación y sus implicaciones se documentan en
 
 ## Proporciones de las particiones
 
-La proporción global objetivo es 80 % para entrenamiento, 10 % para validación y 10 % para
-prueba. Se aproxima primero por cantidad de grabaciones y después por cantidad de clips.
+La proporción global objetivo es 80 % para entrenamiento y 20 % para validación. Se aproxima
+primero por cantidad de grabaciones y después por cantidad de clips. Los audios externos sin
+etiquetas de `dataset/test/` no participan en esta asignación.
 
 Cada una de las 31 etiquetas principales debe tener como mínimo:
 
 | Partición | Grabaciones positivas mínimas |
 |---|---:|
-| Entrenamiento | 6 |
+| Entrenamiento | 8 |
 | Validación | 2 |
-| Prueba | 2 |
 
 Para las cuatro etiquetas exploratorias se intenta conservar al menos una grabación positiva en
-cada partición. Este objetivo es secundario: la cobertura de las etiquetas principales tiene
+ambas particiones. Este objetivo es secundario: la cobertura de las etiquetas principales tiene
 prioridad sobre la cobertura exploratoria y sobre la proporción global.
 
 Si las restricciones no pueden cumplirse debido a las coetiquetas, el generador debe detenerse
@@ -129,7 +129,6 @@ produce los siguientes archivos versionables:
 ```text
 splits/train.csv
 splits/validation.csv
-splits/test.csv
 splits/report.json
 ```
 
@@ -141,8 +140,8 @@ local de los metadatos.
 La asignación se resuelve mediante programación lineal entera mixta con SciPy/HiGHS. La cobertura
 principal y la pertenencia exclusiva de cada grabación son restricciones duras. Los criterios de
 asignación se optimizan lexicográficamente en el orden declarado anteriormente: cada óptimo se
-fija antes de resolver el criterio siguiente. Un desempate determinista dependiente de la semilla
-elige una única solución entre asignaciones equivalentes.
+fija antes de resolver el criterio siguiente. Un objetivo final dependiente de la semilla
+desempata de forma determinista las asignaciones equivalentes observadas por el optimizador.
 
 La escritura ocurre de forma atómica después de validar la asignación completa. Una repetición
 idéntica no reescribe archivos; para reemplazar artefactos diferentes debe indicarse `--force`.
@@ -163,3 +162,10 @@ Antes de aceptar las particiones debe comprobarse que:
 El reporte debe resumir grabaciones y clips por partición, positivos por etiqueta y partición,
 distribución por sitio, clips totalmente negativos para la taxonomía principal,
 `out_of_scope_foreground`, etiquetas excluidas, semilla y huella de los metadatos.
+
+## Test externo sin etiquetas
+
+`dataset/test/` queda fuera de los manifiestos etiquetados y puede incorporarse después de
+entrenar. Sus WAV se validan y procesan mediante `python -m anuraset_dl.predict`; no se unen con
+`dataset/train.csv`, no intervienen en el ajuste del banco FBRS ni producen métricas locales. Los
+umbrales aplicados a sus predicciones son los seleccionados exclusivamente sobre validación.

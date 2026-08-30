@@ -7,7 +7,6 @@ data:
   splits:
     train: splits/train.csv
     validation: splits/validation.csv
-    test: splits/test.csv
   sample_rate: 22050
   clip_seconds: 3
   num_labels: 31

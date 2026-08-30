@@ -26,7 +26,6 @@ def _config(tmp_path: Path) -> dict:
             "splits": {
                 "train": str(tmp_path / "train.csv"),
                 "validation": str(tmp_path / "validation.csv"),
-                "test": str(tmp_path / "test.csv"),
             },
             "sample_rate": 8000,
             "clip_seconds": 0.25,
@@ -79,9 +78,6 @@ def _write_fit_fixture(tmp_path: Path, config: dict) -> None:
     pd.DataFrame(
         [{"filename": "validation_missing.wav", "recording_id": "validation"}]
     ).to_csv(config["data"]["splits"]["validation"], index=False)
-    pd.DataFrame(columns=["filename", "recording_id"]).to_csv(
-        config["data"]["splits"]["test"], index=False
-    )
 
 
 def test_wavelet_energies_are_normalized_per_level() -> None:

@@ -14,8 +14,8 @@ Cada experimento debe registrar como mínimo:
 
 | Experimento | Representación | Modelo | Estado | Resultado |
 |---|---|---|---|---|
-| `cnn_mel_baseline` | Mel | CNN | Ejecutado | F1 macro test 0.5070; mAP test 0.5570 |
-| `cnn_fbrs` | FBRS | CNN | Ejecutado | F1 macro test 0.4977; mAP test 0.5303 |
+| `cnn_mel_baseline` | Mel | CNN | Histórico 80/10/10; requiere reejecución | No comparable con el protocolo vigente |
+| `cnn_fbrs` | FBRS | CNN | Histórico 80/10/10; requiere reejecución | No comparable con el protocolo vigente |
 | `dlognet_mel` | Mel | DLoGNet | Pipeline implementado; ejecución pendiente | — |
 | `dlognet_fbrs` | FBRS | DLoGNet | Pipeline implementado; ejecución pendiente | — |
 
@@ -38,10 +38,18 @@ Las ejecuciones de 50 épocas todavía no se han realizado. Debe ejecutarse prim
 representación y después `dlognet_fbrs`, reutilizando el banco ya ajustado únicamente con
 entrenamiento.
 
+## Cambio de protocolo 80/20
+
+El protocolo vigente divide `dataset/train/` en entrenamiento y validación 80/20. El test es un
+conjunto externo sin etiquetas y se utiliza únicamente para inferencia. Las ejecuciones descritas
+a continuación quedan preservadas como antecedentes históricos: sus checkpoints, banco FBRS y
+métricas están vinculados a los antiguos manifiestos 80/10/10 y deben regenerarse antes de hacer
+comparaciones bajo el protocolo vigente.
+
 ## Estado del baseline CNN + Mel
 
 El pipeline ejecutable incluye carga por manifiestos, transformación log-Mel, CNN, entrenamiento
-con checkpoints, selección de umbrales en validación y evaluación separada sobre prueba. Su prueba
+con checkpoints, selección de umbrales y evaluación interna sobre validación. Su prueba
 de integración utiliza un corpus sintético pequeño y no constituye un resultado experimental.
 
 El seguimiento local usa el experimento MLflow `anuraset_dl`. Entrenamiento y evaluación deben
@@ -64,7 +72,7 @@ de la partición, restricción de hermanos, localización de tonos puros, estabi
 reproducibilidad, serialización, rechazo de un manifiesto de entrenamiento alterado y una ejecución
 sintética de extremo a extremo. Todas las verificaciones terminaron correctamente.
 
-El banco global se ajustó entre el 28 y el 29 de agosto de 2026 con
+En la ejecución histórica, el banco global se ajustó entre el 28 y el 29 de agosto de 2026 con
 `configs/cnn_fbrs.yaml`, semilla `42` y exclusivamente los 31,573 clips de entrenamiento con al
 menos un positivo en la taxonomía activa (`active_positive_training`). No se utilizaron clips de
 validación ni prueba. El artefacto contiene 128 filtros finitos y no vacíos sobre 513 bins, cubre
@@ -73,7 +81,7 @@ de 0 a 11,025 Hz y tiene SHA-256
 `outputs/filterbanks/fbrs_db16_l8_b128.pt` y está vinculado por huella al CSV de metadatos y a
 `splits/train.csv`.
 
-El entrenamiento completo de 50 épocas se ejecutó en MPS con los manifiestos
+El entrenamiento histórico completo de 50 épocas se ejecutó en MPS con los manifiestos
 `splits/train.csv`, `splits/validation.csv` y `splits/test.csv`. Duró `4958.01` segundos. El mejor
 checkpoint fue el de la época 41, con pérdida de validación `0.078872`; la evaluación duró
 `13.37` segundos. Los artefactos canónicos se encuentran en

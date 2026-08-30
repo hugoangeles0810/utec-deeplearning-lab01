@@ -29,10 +29,12 @@ localmente con esta estructura:
 ```text
 dataset/
 ├── train.csv
-└── train/
-    ├── <filename_1>.wav
-    ├── <filename_2>.wav
-    └── ...
+├── train/
+│   ├── <filename_1>.wav
+│   ├── <filename_2>.wav
+│   └── ...
+└── test/
+    └── <external_filename>.wav
 ```
 
 `train.csv` debe contener una columna `filename` con nombres únicos y una columna binaria por
@@ -40,6 +42,9 @@ etiqueta. Cada valor de `filename` debe identificar exactamente un WAV dentro de
 Los audios del protocolo vigente son mono, tienen una frecuencia de muestreo de 22.05 kHz y una
 duración exacta de 3 segundos. Los nombres deben conservarse sin cambios, porque los manifiestos
 versionados en `splits/` los utilizan para vincular cada clip con su partición.
+
+`dataset/test/` recibe los audios externos sin etiquetas cuando estén disponibles. Esos WAV no
+participan en el particionado ni se incorporan a `train.csv`.
 
 El CSV y los WAV permanecen ignorados por Git; los archivos `.gitkeep` conservan únicamente la
 estructura vacía. Para validar el dataset local y comprobar que coincide con los manifiestos:
@@ -60,6 +65,7 @@ uv run jupyter lab
 uv run --group tracking python -m anuraset_dl.prepare_data --config configs/baseline.yaml
 uv run --group tracking python -m anuraset_dl.train --config configs/baseline.yaml
 uv run --group tracking python -m anuraset_dl.evaluate --config configs/baseline.yaml
+uv run python -m anuraset_dl.predict --config configs/baseline.yaml --input-dir dataset/test
 ```
 
 Para ajustar el banco FBRS únicamente sobre entrenamiento y ejecutar la comparación con la misma
@@ -81,7 +87,7 @@ uv run --group tracking python -m anuraset_dl.evaluate --config configs/dlognet_
 ```
 
 `dlognet_fbrs` reutiliza el banco congelado declarado en `features.bank_path`; no debe volver a
-ajustarse con validación o prueba.
+ajustarse con validación ni con el test externo.
 
 El ajuste se detiene si el banco ya existe; `--force` permite reemplazarlo de forma explícita.
 Entrenamiento y evaluación verifican la huella del banco congelado además de las huellas de los
@@ -89,9 +95,10 @@ metadatos y manifiestos.
 
 El comando de preparación valida el CSV y todas las cabeceras de audio antes de reproducir los
 manifiestos. El entrenamiento guarda `best.pt`, `last.pt` y el historial bajo
-`outputs/checkpoints/cnn_mel_baseline/`. La evaluación selecciona los umbrales por clase sobre
-validación, los congela para prueba y escribe el reporte completo en
-`outputs/metrics/cnn_mel_baseline.json`.
+`outputs/checkpoints/cnn_mel_baseline/`. La evaluación selecciona los umbrales por clase y calcula
+las métricas internas sobre validación en `outputs/metrics/cnn_mel_baseline.json`. La inferencia
+aplica esos umbrales al test sin etiquetas y escribe probabilidades y decisiones bajo
+`outputs/predictions/`; no calcula métricas de test localmente.
 
 El dispositivo se selecciona automáticamente con prioridad CUDA, MPS y CPU. Puede forzarse, por
 ejemplo, con `--device cpu` tanto en entrenamiento como en evaluación. El cambio de dispositivo

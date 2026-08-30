@@ -6,7 +6,7 @@ from typing import Any
 import yaml
 
 _REQUIRED_SECTIONS = ("data", "features", "model", "training", "evaluation")
-_REQUIRED_SPLITS = ("train", "validation", "test")
+_REQUIRED_SPLITS = ("train", "validation")
 _COMMON_FEATURE_FIELDS = (
     "pre_emphasis",
     "window",
@@ -75,6 +75,8 @@ def validate_config(config: dict[str, Any]) -> None:
     if not isinstance(splits, dict):
         raise ValueError("data.splits debe ser un objeto YAML")
     _require_fields(splits, _REQUIRED_SPLITS, "data.splits")
+    if set(splits) != set(_REQUIRED_SPLITS):
+        raise ValueError("data.splits debe contener únicamente train y validation")
 
     model = _require_mapping(config, "model")
     _require_fields(model, ("name",), "model")

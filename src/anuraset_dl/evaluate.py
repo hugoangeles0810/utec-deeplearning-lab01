@@ -1,4 +1,4 @@
-"""Selección de umbrales en validación y evaluación final sobre test."""
+"""Selección de umbrales y evaluación interna sobre validación."""
 
 from __future__ import annotations
 
@@ -42,13 +42,10 @@ def _tracking_metrics(split: str, metrics: dict[str, Any]) -> dict[str, float]:
 def evaluate_experiment(
     config: dict[str, Any], checkpoint_path: str | Path | None = None
 ) -> dict[str, Any]:
-    """Ajusta umbrales en validación y aplica el protocolo congelado a test."""
+    """Ajusta umbrales y calcula las métricas internas sobre validación."""
     set_reproducibility(int(config["seed"]))
     device = resolve_device(str(config["training"].get("device", "auto")))
     validation_loader, labels = build_loader(config, "validation")
-    test_loader, test_labels = build_loader(config, "test")
-    if labels != test_labels:
-        raise ValueError("Validation y test no comparten el mismo orden de etiquetas")
 
     if checkpoint_path is None:
         checkpoint_path = (
@@ -90,13 +87,11 @@ def evaluate_experiment(
         validation_metrics = multilabel_metrics(
             validation_targets, validation_probabilities, thresholds, labels
         )
-        test_targets, test_probabilities = predict_probabilities(model, test_loader, device)
-        test_metrics = multilabel_metrics(test_targets, test_probabilities, thresholds, labels)
         checkpoint_sha256 = sha256_file(checkpoint_path)
         duration = time.perf_counter() - started_at
 
         result = {
-            "schema_version": 2,
+            "schema_version": 3,
             "experiment": config["experiment"],
             "seed": int(config["seed"]),
             "device": str(device),
@@ -108,7 +103,6 @@ def evaluate_experiment(
             "threshold_strategy": config["evaluation"]["threshold_strategy"],
             "thresholds": dict(zip(labels, thresholds.tolist())),
             "validation": validation_metrics,
-            "test": test_metrics,
             "duration_seconds": duration,
             "tracking_run_id": tracker.run_id,
         }
@@ -124,7 +118,6 @@ def evaluate_experiment(
         tracker.log_metrics(
             {
                 **_tracking_metrics("validation", validation_metrics),
-                **_tracking_metrics("test", test_metrics),
                 "evaluation/duration_seconds": duration,
             }
         )
@@ -139,7 +132,7 @@ def evaluate_experiment(
 
 
 def main() -> None:
-    """Evalúa un checkpoint usando validación y test en sus roles definidos."""
+    """Evalúa un checkpoint y selecciona sus umbrales sobre validación."""
     parser = argparse.ArgumentParser(description="Evaluación sobre AnuraSet")
     parser.add_argument("--config", required=True, help="Ruta de la configuración YAML")
     parser.add_argument("--checkpoint", help="Checkpoint; por defecto usa best.pt")
@@ -152,9 +145,9 @@ def main() -> None:
         config = copy.deepcopy(config)
         config["training"]["device"] = args.device
     result = evaluate_experiment(config, args.checkpoint)
-    macro = result["test"]["macro"]
+    macro = result["validation"]["macro"]
     print(
-        f"Evaluación completada: macro-F1={macro['f1']:.6f}, "
+        f"Validación completada: macro-F1={macro['f1']:.6f}, "
         f"mAP={macro['map']:.6f}. Métricas: {result['metrics_path']}"
     )
 

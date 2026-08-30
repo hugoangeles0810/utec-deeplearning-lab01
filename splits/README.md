@@ -1,12 +1,11 @@
 # Particiones del dataset
 
-Este directorio contiene los manifiestos versionables de entrenamiento, validación y prueba:
+Este directorio contiene los manifiestos versionables de entrenamiento y validación:
 
 ```text
 splits/
 ├── train.csv
 ├── validation.csv
-├── test.csv
 └── report.json
 ```
 
@@ -23,13 +22,15 @@ cubren los 62,191 clips y separan las 1,074 grabaciones de esta forma:
 
 | Partición | Grabaciones | Clips |
 |---|---:|---:|
-| Entrenamiento | 859 | 49,758 |
-| Validación | 108 | 6,227 |
-| Prueba | 107 | 6,206 |
+| Entrenamiento | 859 | 49,753 |
+| Validación | 215 | 12,438 |
 
-La asignación satisface la cobertura 6/2/2 de las 31 etiquetas principales y presencia 1/1/1
+La asignación satisface la cobertura 8/2 de las 31 etiquetas principales y presencia 1/1
 de cada etiqueta exploratoria. `report.json` contiene los conteos detallados, las huellas de los
 artefactos y los resultados de todas las validaciones.
+
+Los audios externos sin etiquetas de `dataset/test/` no forman parte de estos manifiestos. Se
+procesan únicamente mediante el comando de inferencia después de congelar modelo y umbrales.
 
 Los manifiestos no duplican las columnas de etiquetas de `dataset/train.csv`. El archivo
 versionable `splits/report.json` debe conservar la huella SHA-256 del archivo de metadatos

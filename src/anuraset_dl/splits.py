@@ -22,7 +22,7 @@ from scipy.sparse import csr_matrix, vstack
 
 _SEGMENT_SUFFIX = re.compile(r"_\d+_\d+\.wav$")
 _SITE_PREFIX = re.compile(r"^INCT(?P<site>\d+)_")
-_SPLIT_NAMES = ("train", "validation", "test")
+_SPLIT_NAMES = ("train", "validation")
 
 
 @dataclass(frozen=True)
@@ -108,7 +108,7 @@ def load_preparation_policy(config: dict[str, Any]) -> PreparationPolicy:
 
     split_names = tuple(section["split_order"])
     if split_names != _SPLIT_NAMES:
-        raise ValueError("preparation.split_order debe ser train, validation, test")
+        raise ValueError("preparation.split_order debe ser train, validation")
     proportion_map = section["proportions"]
     proportions = tuple(Fraction(str(proportion_map[name])) for name in split_names)
     if any(value <= 0 for value in proportions) or sum(proportions) != 1:

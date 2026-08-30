@@ -40,16 +40,15 @@ def test_recording_id_preserves_additional_component() -> None:
 def _policy(tmp_path: Path, metadata_hash: str = "0" * 64) -> PreparationPolicy:
     return PreparationPolicy(
         seed=42,
-        split_names=("train", "validation", "test"),
-        proportions=(Fraction("0.8"), Fraction("0.1"), Fraction("0.1")),
-        minimum_positive_recordings=(6, 2, 2),
+        split_names=("train", "validation"),
+        proportions=(Fraction("0.8"), Fraction("0.2")),
+        minimum_positive_recordings=(8, 2),
         exploratory_labels=("E",),
-        exploratory_minimum_positive_recordings=(1, 1, 1),
+        exploratory_minimum_positive_recordings=(1, 1),
         expected_metadata_sha256=metadata_hash,
         manifest_paths=(
             tmp_path / "train.csv",
             tmp_path / "validation.csv",
-            tmp_path / "test.csv",
         ),
         report_path=tmp_path / "report.json",
     )
@@ -99,8 +98,8 @@ def test_optimizer_respects_grouping_coverage_and_is_reproducible(tmp_path: Path
     manifests = build_manifests(data, first, policy)
 
     assert first.assignments == second.assignments
-    assert first.objectives["exploratory_coverage"] == 3
-    assert {len(frame) for frame in manifests.values()} == {2, 8}
+    assert first.objectives["exploratory_coverage"] == 2
+    assert {len(frame) for frame in manifests.values()} == {2, 10}
     for frame in manifests.values():
         assert list(frame.columns) == ["filename", "recording_id"]
 

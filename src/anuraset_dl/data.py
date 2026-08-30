@@ -198,3 +198,38 @@ class AnuraDataset(Dataset[tuple[Tensor, Tensor]]):
         features = self.transform(torch.from_numpy(waveform)).unsqueeze(0)
         targets = torch.tensor(row.loc[list(self.labels)].to_numpy(dtype=np.float32))
         return features, targets
+
+
+class UnlabeledAudioDataset(Dataset[tuple[Tensor, str]]):
+    """Carga de forma determinista un directorio de WAV sin etiquetas."""
+
+    def __init__(
+        self,
+        config: dict[str, Any],
+        audio_dir: str | Path,
+        transform: nn.Module | None = None,
+    ) -> None:
+        self.audio_dir = Path(audio_dir)
+        if not self.audio_dir.is_dir():
+            raise ValueError(f"No existe el directorio de inferencia: {self.audio_dir}")
+        self.paths = tuple(sorted(self.audio_dir.glob("*.wav"), key=lambda path: path.name))
+        if not self.paths:
+            raise ValueError(f"No se encontraron audios WAV en: {self.audio_dir}")
+        self.sample_rate = int(config["data"]["sample_rate"])
+        self.expected_samples = round(
+            self.sample_rate * float(config["data"]["clip_seconds"])
+        )
+        self.transform = transform or build_transform(config)
+
+    def __len__(self) -> int:
+        return len(self.paths)
+
+    def __getitem__(self, index: int) -> tuple[Tensor, str]:
+        path = self.paths[index]
+        waveform, sample_rate = sf.read(path, dtype="float32", always_2d=False)
+        if sample_rate != self.sample_rate or waveform.ndim != 1:
+            raise ValueError(f"Audio incompatible: {path}")
+        if len(waveform) != self.expected_samples:
+            raise ValueError(f"Duración incompatible: {path}")
+        features = self.transform(torch.from_numpy(waveform)).unsqueeze(0)
+        return features, path.name

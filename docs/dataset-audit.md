@@ -175,7 +175,7 @@ La distribución produce cuatro grupos nítidos para el protocolo actual:
 
 El umbral de 10 grabaciones no afirma que una clase quede bien representada estadísticamente.
 Es el mínimo compatible con reservar 6 grabaciones positivas para entrenamiento, 2 para
-validación y 2 para prueba. La coocurrencia puede impedir una asignación concreta incluso cuando
+validación. La coocurrencia puede impedir una asignación concreta incluso cuando
 los conteos marginales alcanzan ese mínimo; por eso el generador debe validar las restricciones y
 detenerse si no puede cumplirlas.
 
@@ -210,8 +210,8 @@ actividad etiquetada fuera de la taxonomía principal. En consecuencia:
 | 62,191 clips proceden de 1,074 grabaciones y casi todas aportan 58 segmentos | Fuga entre segmentos correlacionados | Partición indivisible por `recording_id` |
 | Existe un identificador con el componente adicional `_000` | Una extracción posicional separaría o perdería esa grabación | Eliminar solo el sufijo `_inicio_fin.wav` |
 | 26,801 clips contienen dos o más etiquetas | Las clases no son mutuamente excluyentes | Salida multietiqueta, logits independientes y `BCEWithLogitsLoss` |
-| 31 etiquetas alcanzan 10 grabaciones positivas | Es posible plantear una cobertura marginal mínima de 6/2/2 | Taxonomía principal de 31 etiquetas y validación estricta de cobertura |
-| 4 etiquetas solo alcanzan entre 3 y 9 grabaciones | No admiten la cobertura 6/2/2 | Taxonomía exploratoria separada; objetivo secundario de 1 grabación por partición |
+| 31 etiquetas alcanzan 10 grabaciones positivas | Es posible plantear una cobertura marginal mínima de 8/2 | Taxonomía principal de 31 etiquetas y validación estricta de cobertura |
+| 4 etiquetas solo alcanzan entre 3 y 9 grabaciones | No admiten la cobertura 8/2 | Taxonomía exploratoria separada; objetivo secundario de 1 grabación por partición |
 | 5 etiquetas tienen 1 o 2 grabaciones y 2 no tienen positivos | No permiten entrenamiento convencional ni evaluación independiente en tres particiones | Exclusión del experimento principal; nueva recolección o protocolo *few-shot* |
 | 22,731 clips no tienen positivos entre las 31 etiquetas | Los ceros son frecuentes, pero no equivalen a fondo verificado | Conservar como negativos para la taxonomía activa, sin crear `background` |
 | 227 de esos clips contienen positivos excluidos | Hay primer plano conocido fuera del alcance | Conservar anotaciones, no remapear y reportar `out_of_scope_foreground` |
@@ -219,6 +219,6 @@ actividad etiquetada fuera de la taxonomía principal. En consecuencia:
 | Todos los audios comparten formato, frecuencia y duración | No se requiere normalización estructural para este corte | Configurar 22.05 kHz y 3 s; volver a validar si cambia la huella |
 | No hay duplicados ni diferencias entre CSV y audios | El corte actual puede conservarse completo | No descartar filas por integridad, manteniendo esos controles como precondición |
 
-La proporción 80/10/10 y la semilla 42 son decisiones del protocolo, no resultados derivados de
+La proporción 80/20 y la semilla 42 son decisiones del protocolo, no resultados derivados de
 la auditoría. La evidencia anterior determina las restricciones que esa asignación debe respetar;
 los manifiestos y su reporte aportarán la evidencia de que una partición concreta las cumple.

@@ -69,20 +69,21 @@ deben revisar las configuraciones, particiones y pruebas que dependan de ella.
    y guardar sus manifiestos versionables en `splits/`.
 3. Ajustar cualquier preprocesamiento usando únicamente entrenamiento.
 4. Entrenar la matriz mínima de comparación formada por CNN y DLoGNet con Mel y FBRS.
-5. Seleccionar umbrales con validación.
-6. Evaluar una sola vez sobre prueba.
+5. Seleccionar umbrales y calcular métricas internas con validación.
+6. Generar predicciones sobre el test externo sin etiquetas cuando esté disponible.
 
 ## Particiones y prevención de fugas
 
 Ningún segmento de una misma grabación puede aparecer en más de una partición. La proporción
-objetivo es 80/10/10 y cada etiqueta principal debe conservar al menos 6 grabaciones positivas
-en entrenamiento, 2 en validación y 2 en prueba. La política completa se define en
+objetivo es 80/20 y cada etiqueta principal debe conservar al menos 8 grabaciones positivas en
+entrenamiento y 2 en validación. La política completa se define en
 [`data-preparation.md`](data-preparation.md); los manifiestos deben almacenarse en `splits/` y
 seguir el contrato de [`splits/README.md`](../splits/README.md).
 
 Todo preprocesamiento aprendido, incluido el ajuste del banco FBRS, se estima exclusivamente a
-partir de entrenamiento. La selección de umbrales utiliza validación. La partición de prueba queda reservada para
-la evaluación final.
+partir de entrenamiento. La selección de umbrales y las métricas internas utilizan validación.
+Los audios de test proporcionados sin etiquetas se reservan para inferencia y no forman parte del
+particionado ni de la evaluación local.
 
 ## Fuente de verdad del número de clases
 
@@ -107,7 +108,7 @@ El baseline utiliza preénfasis `0.97`, ventana Hamming periódica, `n_fft = 102
 muestras, espectro sin centrado y potencia al cuadrado. La proyección consta de 128 filtros
 triangulares sobre escala Mel HTK, sin normalización de área, entre 0 Hz y Nyquist. Se aplica el
 logaritmo natural después de limitar la energía inferiormente por `1e-10`. Esta transformación no
-ajusta estadísticas con validación o prueba y produce tensores con un canal.
+ajusta estadísticas con validación ni con el test externo y produce tensores con un canal.
 
 La CNN de referencia contiene tres bloques `Conv2d` 3×3, `BatchNorm2d`, ReLU y `MaxPool2d` 2×2,
 con 32, 64 y 128 canales. Un `AdaptiveAvgPool2d`, *dropout* de 0.3 y una capa lineal producen los
@@ -129,7 +130,7 @@ representación, arquitectura o hiperparámetros.
 
 MLflow Tracking se utiliza como una capa operacional opcional. Cada entrenamiento crea un run y
 guarda su identificador en `best.pt`, `last.pt` y `history.json`; la evaluación reanuda ese mismo
-run para incorporar las métricas de validación y prueba. Se registran la configuración efectiva,
+run para incorporar las métricas de validación. Se registran la configuración efectiva,
 las huellas de datos, pérdidas por época, duración, métricas finales y los reportes JSON pequeños.
 Los checkpoints no se copian al almacén de artefactos de MLflow para evitar duplicar binarios.
 
@@ -148,18 +149,19 @@ tarea es multietiqueta y contiene una proporción elevada de ejemplos totalmente
 Los umbrales de decisión se seleccionan por clase maximizando F1 sobre validación, según
 `evaluation.threshold_strategy` en la configuración. El cálculo de average precision se realiza
 sobre probabilidades o puntuaciones continuas y no depende de esos umbrales. Las restricciones de
-las particiones garantizan positivos de cada etiqueta principal en validación y prueba. Si una
-clase principal no tiene positivos en alguna de esas particiones, la evaluación debe detenerse y
+las particiones garantizan positivos de cada etiqueta principal en validación. Si una clase
+principal no tiene positivos en validación, la evaluación debe detenerse y
 reportar que los manifiestos son inválidos; no debe excluir silenciosamente esa clase de las
 métricas macro o de mAP. Esta política se declara mediante
 `evaluation.zero_positive_class_policy: error`.
 
-El artefacto de evaluación conserva los umbrales, las métricas de validación y prueba, el orden de
+El artefacto de evaluación conserva los umbrales, las métricas de validación, el orden de
 etiquetas, las huellas de los datos y las huellas de configuración y checkpoint. Antes de inferir,
 la evaluación exige que los metadatos y todos los manifiestos coincidan por contenido con los
 registrados durante entrenamiento. Precisión, exhaustividad, F1 y average precision se reportan
-por clase; sus tres primeros agregados son medias macro y mAP es la media de average precision. El
-comando de evaluación es la única etapa del baseline que carga ejemplos de prueba.
+por clase; sus tres primeros agregados son medias macro y mAP es la media de average precision.
+La inferencia externa carga los WAV de `dataset/test/` sin objetivos y genera probabilidades y
+decisiones usando los umbrales congelados en validación.
 
 ## Adaptación de FBRS y DLoGNet
 

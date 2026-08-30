@@ -9,6 +9,7 @@ import soundfile as sf
 
 from anuraset_dl.evaluate import evaluate_experiment
 from anuraset_dl.fbrs import fit_fbrs_bank
+from anuraset_dl.predict import predict_unlabeled
 from anuraset_dl.runtime import config_fingerprint, sha256_file
 from anuraset_dl.train import train_experiment
 
@@ -18,7 +19,7 @@ def _synthetic_experiment(tmp_path: Path) -> dict:
     audio_dir = dataset_root / "train"
     audio_dir.mkdir(parents=True)
     rows = []
-    split_rows = {"train": [], "validation": [], "test": []}
+    split_rows = {"train": [], "validation": []}
     sample_rate = 8000
     samples = 2000
     time = np.arange(samples) / sample_rate
@@ -125,7 +126,6 @@ def test_training_and_evaluation_complete_end_to_end(
     assert persisted["data_fingerprints"] == evaluation["data_fingerprints"]
     assert set(evaluation["thresholds"]) == {"frog_a", "frog_b"}
     assert set(evaluation["validation"]) == {"macro", "per_class"}
-    assert set(evaluation["test"]) == {"macro", "per_class"}
 
 
 @pytest.mark.parametrize("model_name", ["cnn", "dlognet"])
@@ -208,7 +208,7 @@ def test_mlflow_links_training_and_evaluation_in_the_same_run(tmp_path: Path) ->
     assert run.data.params["model.name"] == "cnn"
     assert "training/loss" in run.data.metrics
     assert "validation/loss" in run.data.metrics
-    assert "test/macro/f1" in run.data.metrics
+    assert "validation/macro/f1" in run.data.metrics
     assert run.data.tags["anuraset.training_recorded"] == "true"
     assert run.data.tags["anuraset.evaluation_recorded"] == "true"
     assert [item.path for item in client.list_artifacts(run.info.run_id, "training")] == [
@@ -216,6 +216,41 @@ def test_mlflow_links_training_and_evaluation_in_the_same_run(tmp_path: Path) ->
     ]
     assert [item.path for item in client.list_artifacts(run.info.run_id, "evaluation")] == [
         "evaluation/synthetic_cnn_mel.json"
+    ]
+
+
+def test_unlabeled_prediction_uses_validation_thresholds(tmp_path: Path) -> None:
+    config = _synthetic_experiment(tmp_path)
+    training = train_experiment(config)
+    evaluation = evaluate_experiment(config, training["best_checkpoint"])
+    input_dir = tmp_path / "external-test"
+    input_dir.mkdir()
+    sample_rate = int(config["data"]["sample_rate"])
+    samples = round(sample_rate * float(config["data"]["clip_seconds"]))
+    for filename, frequency in (("b.wav", 1200), ("a.wav", 440)):
+        time = np.arange(samples) / sample_rate
+        waveform = (0.25 * np.sin(2 * np.pi * frequency * time)).astype(np.float32)
+        sf.write(input_dir / filename, waveform, sample_rate, subtype="PCM_16")
+    output = tmp_path / "predictions.csv"
+
+    result = predict_unlabeled(
+        config,
+        input_dir,
+        checkpoint_path=training["best_checkpoint"],
+        evaluation_path=evaluation["metrics_path"],
+        output_path=output,
+    )
+
+    predictions = pd.read_csv(output)
+    assert result["examples"] == 2
+    assert Path(result["metadata_path"]).is_file()
+    assert predictions["filename"].tolist() == ["a.wav", "b.wav"]
+    assert list(predictions.columns) == [
+        "filename",
+        "frog_a_probability",
+        "frog_a_prediction",
+        "frog_b_probability",
+        "frog_b_prediction",
     ]
 
 
