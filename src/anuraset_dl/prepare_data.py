@@ -35,7 +35,7 @@ def main() -> None:
     metadata_path = Path(config["data"]["metadata"])
     audio_dir = Path(config["data"]["root"]) / "train"
 
-    print("Validando metadatos y cabeceras de audio...")
+    print("Validando metadatos e inventario de audio...")
     data = prepare_data(metadata_path, audio_dir, config, policy)
     print(f"Optimizando {len(data.recordings):,} grabaciones sin fugas...")
     result = optimize_assignments(data, policy)

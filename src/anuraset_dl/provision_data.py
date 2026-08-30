@@ -18,7 +18,6 @@ from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
 import py7zr
-import soundfile as sf
 import yaml
 
 DOWNLOAD_CHUNK_BYTES = 8 * 1024 * 1024
@@ -183,33 +182,10 @@ def _wav_inventory(directory: Path) -> dict[str, Path]:
     return inventory
 
 
-def validate_audio_headers(paths: Iterable[Path], audio: AudioSpec) -> None:
-    """Comprueba el contrato técnico de una colección de WAV."""
-    failures: list[str] = []
-    for path in sorted(paths):
-        try:
-            info = sf.info(path)
-        except (RuntimeError, OSError):
-            failures.append(path.name)
-        else:
-            if (
-                info.format != "WAV"
-                or info.subtype != audio.subtype
-                or info.channels != audio.channels
-                or info.samplerate != audio.sample_rate
-                or info.frames != audio.frames
-            ):
-                failures.append(path.name)
-        if len(failures) == 10:
-            break
-    if failures:
-        raise ValueError(f"Audios con cabecera incompatible: {', '.join(failures)}")
-
-
 def validate_train_directory(
-    directory: Path, expected_filenames: set[str], spec: ArchiveSpec, audio: AudioSpec
+    directory: Path, expected_filenames: set[str], spec: ArchiveSpec
 ) -> None:
-    """Valida la correspondencia exacta entre entrenamiento y metadatos."""
+    """Valida el conteo y la correspondencia exacta entre inventario y metadatos."""
     inventory = _wav_inventory(directory)
     if len(inventory) != spec.wav_count:
         raise ValueError(
@@ -221,17 +197,15 @@ def validate_train_directory(
         raise ValueError(
             f"Correspondencia CSV/audio inválida: faltantes={len(missing)}, extras={len(extra)}"
         )
-    validate_audio_headers(inventory.values(), audio)
 
 
-def validate_test_directory(directory: Path, spec: ArchiveSpec, audio: AudioSpec) -> None:
+def validate_test_directory(directory: Path, spec: ArchiveSpec) -> None:
     """Valida inventario y formato del test externo."""
     inventory = _wav_inventory(directory)
     if len(inventory) != spec.wav_count:
         raise ValueError(
             f"{directory} contiene {len(inventory):,} WAV; se esperaban {spec.wav_count:,}"
         )
-    validate_audio_headers(inventory.values(), audio)
 
 
 def _content_range_start(value: str | None) -> int | None:
@@ -442,10 +416,10 @@ def _provision_archive(
     destination = config.root / spec.destination
     if expected_filenames is None:
         def validate_destination() -> None:
-            validate_test_directory(destination, spec, config.audio)
+            validate_test_directory(destination, spec)
     else:
         def validate_destination() -> None:
-            validate_train_directory(destination, expected_filenames, spec, config.audio)
+            validate_train_directory(destination, expected_filenames, spec)
     try:
         validate_destination()
     except ValueError:
@@ -475,9 +449,9 @@ def _provision_archive(
         raise
     try:
         if expected_filenames is None:
-            validate_test_directory(ready, spec, config.audio)
+            validate_test_directory(ready, spec)
         else:
-            validate_train_directory(ready, expected_filenames, spec, config.audio)
+            validate_train_directory(ready, expected_filenames, spec)
         install_directory(ready, destination, force)
     finally:
         if ready.exists():

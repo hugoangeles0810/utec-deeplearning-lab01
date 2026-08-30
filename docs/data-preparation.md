@@ -14,10 +14,11 @@ uv run python -m anuraset_dl.provision_data
 ```
 
 `configs/dataset.yaml` fija los IDs y tamaños de los archivos remotos, la huella de `train.csv`,
-los inventarios esperados y el formato de audio. El aprovisionamiento admite reanudación, valida
-todo el resultado y no modifica las particiones versionadas. Después de completarlo debe
-ejecutarse el comando de preparación descrito en «Reproducibilidad y manifiestos» para comprobar
-el contrato metodológico y reproducir los manifiestos vigentes.
+los inventarios esperados y el formato de audio. El aprovisionamiento admite reanudación, comprueba
+la extracción del archivo 7z y valida el conteo y los nombres contra el inventario esperado, sin
+abrir individualmente las cabeceras de los WAV. No modifica las particiones versionadas. Después
+de completarlo debe ejecutarse el comando de preparación descrito en «Reproducibilidad y
+manifiestos» para comprobar el contrato metodológico y reproducir los manifiestos vigentes.
 
 ## Unidad de partición
 
@@ -172,6 +173,11 @@ Antes de aceptar las particiones debe comprobarse que:
   alcanzada para las exploratorias;
 - las proporciones obtenidas quedan documentadas;
 - los mismos datos, configuración y semilla reproducen los mismos manifiestos.
+
+La preparación no abre las cabeceras de los 62,191 WAV. La precómputación posterior lee todos los
+audios y se detiene ante frecuencia de muestreo, número de canales o duración incompatibles antes
+de iniciar el entrenamiento. Esta separación evita duplicar accesos costosos a archivos pequeños,
+especialmente sobre almacenamiento de red.
 
 El reporte debe resumir grabaciones y clips por partición, positivos por etiqueta y partición,
 distribución por sitio, clips totalmente negativos para la taxonomía principal,

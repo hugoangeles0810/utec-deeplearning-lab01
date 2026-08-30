@@ -232,7 +232,7 @@ def test_prepare_data_rejects_duplicate_filenames(tmp_path: Path) -> None:
         )
 
 
-def test_prepare_data_rejects_incompatible_audio_header(tmp_path: Path) -> None:
+def test_prepare_data_does_not_open_audio_headers(tmp_path: Path) -> None:
     audio_dir = tmp_path / "dataset" / "train"
     audio_dir.mkdir(parents=True)
     metadata_path = tmp_path / "dataset" / "train.csv"
@@ -240,7 +240,7 @@ def test_prepare_data_rejects_incompatible_audio_header(tmp_path: Path) -> None:
     pd.DataFrame({"filename": [filename], "A": [1], "E": [0]}).to_csv(
         metadata_path, index=False
     )
-    sf.write(audio_dir / filename, np.zeros(8_000), 8_000, subtype="PCM_16")
+    (audio_dir / filename).write_bytes(b"inventario-sin-lectura-de-cabecera")
     config = {
         "data": {
             "sample_rate": 8_000,
@@ -249,10 +249,11 @@ def test_prepare_data_rejects_incompatible_audio_header(tmp_path: Path) -> None:
             "excluded_labels": ["E"],
         }
     }
-    with pytest.raises(ValueError, match="cabecera incompatible"):
-        prepare_data(
-            metadata_path, audio_dir, config, _policy(tmp_path, sha256_file(metadata_path))
-        )
+    result = prepare_data(
+        metadata_path, audio_dir, config, _policy(tmp_path, sha256_file(metadata_path))
+    )
+
+    assert len(result.clips) == 1
 
 
 def test_artifact_writes_are_idempotent_and_protected(tmp_path: Path) -> None:

@@ -15,7 +15,6 @@ from typing import Any
 
 import numpy as np
 import pandas as pd
-import soundfile as sf
 import yaml
 from scipy.optimize import Bounds, LinearConstraint, milp
 from scipy.sparse import csr_matrix, vstack
@@ -181,12 +180,7 @@ def _validate_metadata_table(frame: pd.DataFrame) -> tuple[str, ...]:
     return labels
 
 
-def _validate_audio_files(
-    frame: pd.DataFrame,
-    audio_dir: Path,
-    sample_rate: int,
-    clip_seconds: float,
-) -> None:
+def _validate_audio_inventory(frame: pd.DataFrame, audio_dir: Path) -> None:
     referenced = set(frame["filename"])
     available = {path.name for path in audio_dir.glob("*.wav")}
     missing = sorted(referenced - available)
@@ -196,31 +190,13 @@ def _validate_audio_files(
             f"Correspondencia CSV/audio inválida: faltantes={len(missing)}, extras={len(extra)}"
         )
 
-    expected_frames = round(sample_rate * clip_seconds)
-    failures: list[str] = []
-    for filename in sorted(referenced):
-        info = sf.info(audio_dir / filename)
-        if (
-            info.format != "WAV"
-            or info.subtype != "PCM_16"
-            or info.channels != 1
-            or info.samplerate != sample_rate
-            or info.frames != expected_frames
-        ):
-            failures.append(filename)
-            if len(failures) == 10:
-                break
-    if failures:
-        raise ValueError(f"Audios con cabecera incompatible: {', '.join(failures)}")
-
-
 def prepare_data(
     metadata_path: str | Path,
     audio_dir: str | Path,
     config: dict[str, Any],
     policy: PreparationPolicy,
 ) -> PreparedData:
-    """Valida el corpus completo y construye estadísticas por grabación."""
+    """Valida metadatos e inventario y construye estadísticas por grabación."""
     metadata_path = Path(metadata_path)
     observed_hash = sha256_file(metadata_path)
     if observed_hash != policy.expected_metadata_sha256:
@@ -242,12 +218,7 @@ def prepare_data(
 
     identifiers = frame["filename"].map(recording_id)
     sites = identifiers.map(recording_site)
-    _validate_audio_files(
-        frame,
-        Path(audio_dir),
-        int(config["data"]["sample_rate"]),
-        float(config["data"]["clip_seconds"]),
-    )
+    _validate_audio_inventory(frame, Path(audio_dir))
 
     clips = frame.copy()
     clips.insert(1, "recording_id", identifiers)

@@ -142,8 +142,10 @@ representación; FBRS incorpora además la huella del banco congelado. Si cambia
 esas entradas, el pipeline exige crear una caché nueva. Estos artefactos son locales y están
 excluidos de Git.
 
-El comando de preparación valida el CSV y todas las cabeceras de audio antes de reproducir los
-manifiestos. El entrenamiento guarda `best.pt`, `last.pt` y el historial bajo
+El comando de preparación valida el CSV y la correspondencia exacta del inventario de audio antes
+de reproducir los manifiestos. No abre cada WAV en esta etapa; la lectura y las comprobaciones de
+frecuencia, canales y duración ocurren al precalcular las representaciones. El entrenamiento guarda
+`best.pt`, `last.pt` y el historial bajo
 `outputs/checkpoints/cnn_mel_baseline/`. La evaluación selecciona los umbrales por clase y calcula
 las métricas internas sobre validación en `outputs/metrics/cnn_mel_baseline.json`. La inferencia
 aplica esos umbrales al test sin etiquetas y escribe probabilidades y decisiones bajo
