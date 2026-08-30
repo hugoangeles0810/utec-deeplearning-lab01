@@ -36,6 +36,10 @@ import torch
 
 if sys.version_info[:2] != (3, 12):
     raise SystemExit(f"Se esperaba Python 3.12; se obtuvo {sys.version}")
+if torch.__version__.split("+")[0] != "2.6.0":
+    raise SystemExit(f"Se esperaba PyTorch 2.6.0; se obtuvo {torch.__version__}")
+if torch.version.cuda != "12.4":
+    raise SystemExit(f"Se esperaba el runtime CUDA 12.4; se obtuvo {torch.version.cuda}")
 if not torch.cuda.is_available():
     raise SystemExit("PyTorch no detecta CUDA en el Pod")
 print(f"CUDA disponible: {torch.cuda.get_device_name(0)}")

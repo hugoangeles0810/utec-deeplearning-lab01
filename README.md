@@ -13,6 +13,10 @@ vigente 80/20 permanecen pendientes y no existen resultados experimentales regis
 
 Se requiere Python 3.12 y [`uv`](https://docs.astral.sh/uv/).
 
+El entorno fija PyTorch 2.6.0. En Linux, `uv` lo resuelve desde el índice oficial para CUDA
+12.4; en macOS utiliza la distribución nativa correspondiente. Esta selección queda registrada
+en `uv.lock` y evita depender de la versión de PyTorch preinstalada por el proveedor de cómputo.
+
 ```bash
 uv sync --group dev --group tracking
 ```

@@ -8,11 +8,19 @@ metodológico, las particiones ni las configuraciones semánticas del proyecto.
 
 La infraestructura se crea manualmente desde la consola de Runpod:
 
-- template oficial **Runpod PyTorch**;
-- una GPU NVIDIA RTX A5000 de 24 GB, o RTX 3090 si la primera no está disponible;
+- template oficial **Runpod PyTorch 2.4.0**, basado en
+  `runpod/pytorch:2.4.0-py3.11-cuda12.4.1-devel-ubuntu22.04`;
+- una GPU NVIDIA RTX A5000 de 24 GB; una RTX A4500 de 20 GB o RTX 3090 de 24 GB son
+  alternativas compatibles;
 - **SSH Terminal Access** habilitado;
 - container disk de al menos 20 GB;
 - Network Volume de 60 GB montado en `/workspace`.
+
+El Python 3.11 y PyTorch 2.4.0 incluidos en el template sirven únicamente para construir la
+imagen base y no se reutilizan como entorno del proyecto. `bootstrap.sh` instala Python 3.12 en
+`/opt/anuraset-venv` y sincroniza PyTorch 2.6.0 desde el índice oficial CUDA 12.4 fijado en
+`pyproject.toml` y `uv.lock`. El host debe exponer un driver NVIDIA compatible con CUDA 12.4;
+puede comprobarse con `nvidia-smi` antes de ejecutar el bootstrap.
 
 El Network Volume conserva repositorio, dataset, cachés y resultados cuando se elimina el Pod. El
 entorno virtual se crea en `/opt/anuraset-venv`, sobre el container disk, porque puede regenerarse
@@ -43,8 +51,9 @@ scripts/runpod/bootstrap.sh
 ```
 
 El script instala las dependencias operativas, Python 3.12 y el entorno bloqueado por `uv.lock`.
-Después comprueba CUDA y ejecuta `pytest` y `ruff`. Es idempotente y puede volver a ejecutarse al
-crear otro Pod sobre el mismo Network Volume.
+Después comprueba PyTorch 2.6.0, el runtime CUDA 12.4, la disponibilidad efectiva de la GPU y
+ejecuta `pytest` y `ruff`. Es idempotente y puede volver a ejecutarse al crear otro Pod sobre el
+mismo Network Volume.
 
 ## Ejecución completa
 
