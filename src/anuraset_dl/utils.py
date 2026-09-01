@@ -178,6 +178,38 @@ def validate_config(config: dict[str, Any]) -> None:
     if float(training["learning_rate"]) <= 0:
         raise ValueError("training.learning_rate debe ser positivo")
 
+    early_stopping = training.get("early_stopping")
+    if not isinstance(early_stopping, dict):
+        raise ValueError("training.early_stopping debe ser un objeto YAML")
+    _require_fields(
+        early_stopping,
+        ("enabled", "monitor", "mode", "patience", "min_delta", "warmup_epochs"),
+        "training.early_stopping",
+    )
+    if not isinstance(early_stopping["enabled"], bool):
+        raise ValueError("training.early_stopping.enabled debe ser booleano")
+    if early_stopping["monitor"] != "validation_loss":
+        raise ValueError("training.early_stopping.monitor debe ser validation_loss")
+    if early_stopping["mode"] != "min":
+        raise ValueError("training.early_stopping.mode debe ser min")
+    patience = early_stopping["patience"]
+    if isinstance(patience, bool) or not isinstance(patience, int) or patience <= 0:
+        raise ValueError("training.early_stopping.patience debe ser un entero positivo")
+    warmup_epochs = early_stopping["warmup_epochs"]
+    if (
+        isinstance(warmup_epochs, bool)
+        or not isinstance(warmup_epochs, int)
+        or warmup_epochs < 0
+    ):
+        raise ValueError(
+            "training.early_stopping.warmup_epochs debe ser un entero no negativo"
+        )
+    min_delta = early_stopping["min_delta"]
+    if isinstance(min_delta, bool) or not isinstance(min_delta, (int, float)):
+        raise ValueError("training.early_stopping.min_delta debe ser numérico")
+    if not float(min_delta) >= 0:
+        raise ValueError("training.early_stopping.min_delta debe ser no negativo")
+
     evaluation = _require_mapping(config, "evaluation")
     _require_fields(
         evaluation,

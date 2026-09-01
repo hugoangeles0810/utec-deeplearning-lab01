@@ -103,7 +103,11 @@ El experimento del artículo no coincide con el de este repositorio:
 | Entrada | FBRS redimensionado a 128 × 128 |
 | Pérdida | Entropía cruzada |
 | Salida | Softmax |
-| Entrenamiento | Adam, 50 épocas, lote 32, tasa inicial `1e-4` |
+| Entrenamiento | Adam, hasta 50 épocas, lote 32, tasa inicial `1e-4`; *early stopping* según accuracy de validación |
+
+El artículo no especifica `patience`, `min_delta` ni una época inicial de calentamiento para la
+parada anticipada. Tampoco define cómo trasladar su accuracy monoclase a una tarea multietiqueta;
+esas decisiones de adaptación se registran en `docs/methodology.md`.
 
 La adaptación a anuros es multietiqueta y, por tanto, utiliza logits independientes,
 `BCEWithLogitsLoss` y sigmoid durante inferencia. Esas decisiones se describen en

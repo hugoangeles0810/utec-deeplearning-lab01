@@ -44,7 +44,10 @@ entrenamiento y su caché correspondiente.
 El protocolo divide `dataset/train/` en entrenamiento y validación 80/20. El test es un conjunto
 externo sin etiquetas y se utiliza únicamente para inferencia. La ejecución aceptada del 30 de
 agosto de 2026 produjo checkpoints, banco FBRS, métricas y runs de MLflow para las cuatro celdas
-de la matriz; no se ejecutó inferencia sobre el test externo.
+de la matriz; no se ejecutó inferencia sobre el test externo. Esa ejecución completó siempre las
+50 épocas y es anterior al *early stopping* vigente. Las configuraciones actuales detienen el
+entrenamiento después de cinco épocas de calentamiento y cinco épocas consecutivas sin reducir la
+pérdida de validación; la matriz todavía no se ha repetido con este cambio.
 
 El pipeline ejecutable incluye carga por manifiestos, transformaciones log-Mel y FBRS, modelos
 CNN y DLoGNet, entrenamiento con checkpoints, selección de umbrales y evaluación interna sobre
@@ -97,8 +100,9 @@ archivo `.sha256` y las huellas de los 59 archivos del manifiesto interno.
 - Las dos CNN alcanzaron su menor pérdida de validación en la época 50. En cambio, las dos
   variantes DLoGNet mostraron sobreajuste temprano: `dlognet_mel` seleccionó la época 4 y
   `dlognet_fbrs` la época 2. Las evaluaciones referencian por huella los respectivos `best.pt`,
-  por lo que el deterioro posterior no contaminó las métricas reportadas. Conviene incorporar
-  *early stopping* antes de repetir esta matriz.
+  por lo que el deterioro posterior no contaminó las métricas reportadas. El mecanismo de
+  *early stopping* se incorporó posteriormente; estos resultados no deben presentarse como una
+  ejecución de ese protocolo nuevo.
 - Las 31 clases obtuvieron F1 finito y distinto de cero en los cuatro experimentos; no se
   detectaron `NaN`, infinitos, errores CUDA ni artefactos incompletos.
 - `validate_data.log` es acumulativo y conserva dos trazas de intentos fallidos anteriores. El
