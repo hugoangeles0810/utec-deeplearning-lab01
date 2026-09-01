@@ -64,20 +64,35 @@ def _artifact_config(tmp_path: Path) -> dict:
     return config
 
 
-def _write_trained_artifacts(tmp_path: Path, config: dict) -> tuple[Path, Path]:
+def _write_trained_artifacts(
+    tmp_path: Path, config: dict, *, completed_epochs: int | None = None
+) -> tuple[Path, Path]:
     output = tmp_path / "outputs/checkpoints" / config["experiment"]
     output.mkdir(parents=True)
     fingerprint = config_fingerprint(config)
     best = output / "best.pt"
     last = output / "last.pt"
     epochs = int(config["training"]["epochs"])
+    completed = completed_epochs or epochs
+    stopped_early = completed < epochs
     torch.save({"config_sha256": fingerprint, "epoch": 1}, best)
-    torch.save({"config_sha256": fingerprint, "epoch": epochs}, last)
+    torch.save(
+        {
+            "config_sha256": fingerprint,
+            "epoch": completed,
+            "training_completed": True,
+        },
+        last,
+    )
     (output / "history.json").write_text(
         json.dumps(
             {
                 "experiment": config["experiment"],
-                "epochs": [{"epoch": epoch} for epoch in range(1, epochs + 1)],
+                "max_epochs": epochs,
+                "completed_epochs": completed,
+                "training_completed": True,
+                "stopped_early": stopped_early,
+                "epochs": [{"epoch": epoch} for epoch in range(1, completed + 1)],
             }
         ),
         encoding="utf-8",
@@ -113,6 +128,13 @@ def test_experiment_status_rejects_partial_training(tmp_path: Path) -> None:
     torch.save({}, checkpoint)
 
     assert experiment_status(config, tmp_path) == "inconsistent"
+
+
+def test_experiment_status_accepts_early_stopping(tmp_path: Path) -> None:
+    config = _artifact_config(tmp_path)
+    _write_trained_artifacts(tmp_path, config, completed_epochs=1)
+
+    assert experiment_status(config, tmp_path) == "trained"
 
 
 def test_pipeline_runs_selected_experiment_and_records_state(tmp_path: Path) -> None:

@@ -155,7 +155,10 @@ El comando de preparación valida el CSV y la correspondencia exacta del inventa
 de reproducir los manifiestos. No abre cada WAV en esta etapa; la lectura y las comprobaciones de
 frecuencia, canales y duración ocurren al precalcular las representaciones. El entrenamiento guarda
 `best.pt`, `last.pt` y el historial bajo
-`outputs/checkpoints/cnn_mel_baseline/`. La evaluación selecciona los umbrales por clase y calcula
+`outputs/checkpoints/cnn_mel_baseline/`. El máximo es de 50 épocas y la parada anticipada se activa
+después de cinco épocas de calentamiento cuando la pérdida de validación no mejora durante cinco
+épocas consecutivas. El historial registra si se alcanzó el máximo o se detuvo anticipadamente.
+La evaluación selecciona los umbrales por clase y calcula
 las métricas internas sobre validación en `outputs/metrics/cnn_mel_baseline.json`. La inferencia
 aplica esos umbrales al test sin etiquetas y escribe probabilidades y decisiones bajo
 `outputs/predictions/`; no calcula métricas de test localmente.

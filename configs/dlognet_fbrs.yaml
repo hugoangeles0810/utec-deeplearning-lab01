@@ -56,6 +56,13 @@ training:
   device: auto
   num_workers: 0
   checkpoint_dir: outputs/checkpoints
+  early_stopping:
+    enabled: true
+    monitor: validation_loss
+    mode: min
+    patience: 5
+    min_delta: 0.0
+    warmup_epochs: 5
 
 evaluation:
   threshold_strategy: per_class_validation_f1

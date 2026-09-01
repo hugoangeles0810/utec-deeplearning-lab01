@@ -1,8 +1,9 @@
 # Metodología
 
-Este documento registra el protocolo de datos, FBRS, DLoGNet, entrenamiento y evaluación usado
-por la matriz aceptada del 30 de agosto de 2026. Cualquier decisión metodológica posterior debe
-resolverse y documentarse antes de repetir o ampliar los experimentos.
+Este documento registra el protocolo vigente de datos, FBRS, DLoGNet, entrenamiento y evaluación.
+La matriz aceptada del 30 de agosto de 2026 precede a la incorporación de *early stopping* y se
+conserva como antecedente histórico en `docs/experiments.md`. Cualquier decisión metodológica
+posterior debe resolverse y documentarse antes de repetir o ampliar los experimentos.
 
 ## Objetivo y alcance
 
@@ -118,10 +119,23 @@ con 32, 64 y 128 canales. Un `AdaptiveAvgPool2d`, *dropout* de 0.3 y una capa li
 31 logits. La dimensión de salida se deriva de `data.num_labels`.
 
 El entrenamiento utiliza Adam, la tasa de aprendizaje declarada en configuración, lotes de 32 y
-50 épocas. Se conserva como mejor checkpoint el mínimo de `BCEWithLogitsLoss` sobre validación;
-también se guarda el estado de la última época y un historial JSON. La semilla inicializa Python,
-NumPy y PyTorch. El dispositivo `auto` prioriza CUDA, luego MPS y finalmente CPU. No se aplican
-aumentos ni ponderación de clases en este baseline inicial.
+un máximo de 50 épocas. Se conserva como mejor checkpoint el mínimo de
+`BCEWithLogitsLoss` sobre validación. Después de cinco épocas completas de calentamiento, el
+entrenamiento se detiene cuando transcurren cinco épocas consecutivas sin una reducción estricta
+de esa pérdida (`patience = 5`, `min_delta = 0.0`). Las épocas del calentamiento actualizan el
+mejor checkpoint, pero no consumen paciencia.
+
+El artículo aplica *early stopping* según accuracy de validación, pero no publica su paciencia ni
+una mejora mínima. En esta adaptación se monitorea pérdida de validación porque la tarea es
+multietiqueta, contiene muchos objetivos negativos y ya utiliza esa magnitud para seleccionar
+`best.pt`; una accuracy por etiqueta podría quedar dominada por verdaderos negativos. El máximo,
+criterio, paciencia, mejora mínima y calentamiento forman parte de la configuración semántica del
+experimento.
+
+También se guarda el estado de la última época ejecutada y un historial JSON que distingue entre
+finalización por límite de épocas y por parada anticipada. La semilla inicializa Python, NumPy y
+PyTorch. El dispositivo `auto` prioriza CUDA, luego MPS y finalmente CPU. No se aplican aumentos
+ni ponderación de clases en este baseline inicial.
 
 Cada checkpoint conserva la huella de la configuración semántica y las huellas SHA-256 de los
 metadatos y manifiestos. La configuración semántica excluye el dispositivo, el número de workers y

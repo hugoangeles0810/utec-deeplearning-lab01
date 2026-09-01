@@ -156,12 +156,27 @@ def experiment_status(config: dict[str, Any], root: str | Path = ".") -> str:
         return "inconsistent"
     expected_hash = config_fingerprint(config)
     expected_epochs = int(config["training"]["epochs"])
+    recorded_epochs = history.get("epochs", [])
+    completed_epochs = history.get("completed_epochs")
+    stopped_early = history.get("stopped_early")
+    valid_completion = (
+        history.get("training_completed") is True
+        and isinstance(completed_epochs, int)
+        and 1 <= completed_epochs <= expected_epochs
+        and len(recorded_epochs) == completed_epochs
+        and last_checkpoint.get("epoch") == completed_epochs
+        and last_checkpoint.get("training_completed") is True
+        and (
+            (completed_epochs == expected_epochs and stopped_early is False)
+            or (completed_epochs < expected_epochs and stopped_early is True)
+        )
+    )
     if (
         history.get("experiment") != config["experiment"]
-        or len(history.get("epochs", [])) != expected_epochs
+        or history.get("max_epochs") != expected_epochs
+        or not valid_completion
         or best_checkpoint.get("config_sha256") != expected_hash
         or last_checkpoint.get("config_sha256") != expected_hash
-        or last_checkpoint.get("epoch") != expected_epochs
     ):
         return "inconsistent"
     if not metrics_path.exists():

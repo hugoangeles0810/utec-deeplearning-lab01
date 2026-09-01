@@ -75,8 +75,17 @@ def train_experiment(config: dict[str, Any]) -> dict[str, Any]:
     last_path = experiment_dir / "last.pt"
     history_path = experiment_dir / "history.json"
     best_loss = float("inf")
-    history: list[dict[str, float | int]] = []
+    best_epoch = 0
+    history: list[dict[str, float | int | bool]] = []
     epochs = int(config["training"]["epochs"])
+    early_stopping = config["training"]["early_stopping"]
+    early_stopping_enabled = bool(early_stopping["enabled"])
+    patience = int(early_stopping["patience"])
+    min_delta = float(early_stopping["min_delta"])
+    warmup_epochs = int(early_stopping["warmup_epochs"])
+    monitored_best = float("inf")
+    epochs_without_improvement = 0
+    stopped_early = False
     input_fingerprints = data_fingerprints(config)
     semantic_fingerprint = config_fingerprint(config)
     tracker = MlflowTracker.start(config, phase="training")
@@ -93,16 +102,36 @@ def train_experiment(config: dict[str, Any]) -> dict[str, Any]:
                 model, validation_loader, criterion, device, optimizer=None
             )
             epoch_duration = time.perf_counter() - epoch_started_at
+            improved = validation_loss < best_loss
+            if improved:
+                best_loss = validation_loss
+                best_epoch = epoch
+
+            significant_improvement = validation_loss < monitored_best - min_delta
+            if significant_improvement:
+                monitored_best = validation_loss
+                epochs_without_improvement = 0
+            elif early_stopping_enabled and epoch > warmup_epochs:
+                epochs_without_improvement += 1
+
+            stopped_early = (
+                early_stopping_enabled
+                and epoch > warmup_epochs
+                and epochs_without_improvement >= patience
+            )
+            training_completed = stopped_early or epoch == epochs
             history.append(
                 {
                     "epoch": epoch,
                     "train_loss": train_loss,
                     "validation_loss": validation_loss,
                     "duration_seconds": epoch_duration,
+                    "improved": improved,
+                    "epochs_without_improvement": epochs_without_improvement,
                 }
             )
             checkpoint = {
-                "schema_version": 2,
+                "schema_version": 3,
                 "experiment": config["experiment"],
                 "config_sha256": semantic_fingerprint,
                 "data_fingerprints": input_fingerprints,
@@ -112,11 +141,17 @@ def train_experiment(config: dict[str, Any]) -> dict[str, Any]:
                 "optimizer_state": optimizer.state_dict(),
                 "epoch": epoch,
                 "validation_loss": validation_loss,
+                "training_completed": training_completed,
+                "stopped_early": stopped_early,
+                "early_stopping_state": {
+                    "monitor": "validation_loss",
+                    "best": monitored_best,
+                    "epochs_without_improvement": epochs_without_improvement,
+                },
                 "tracking_run_id": tracker.run_id,
             }
             atomic_torch_save(checkpoint, last_path)
-            if validation_loss < best_loss:
-                best_loss = validation_loss
+            if improved:
                 atomic_torch_save(checkpoint, best_path)
             total_duration = time.perf_counter() - started_at
             atomic_json_dump(
@@ -127,6 +162,24 @@ def train_experiment(config: dict[str, Any]) -> dict[str, Any]:
                     "learning_rate": learning_rate,
                     "trainable_parameters": count_trainable_parameters(model),
                     "best_validation_loss": best_loss,
+                    "best_epoch": best_epoch,
+                    "max_epochs": epochs,
+                    "completed_epochs": epoch,
+                    "training_completed": training_completed,
+                    "stopped_early": stopped_early,
+                    "stop_reason": (
+                        "early_stopping"
+                        if stopped_early
+                        else "max_epochs" if epoch == epochs else None
+                    ),
+                    "early_stopping": {
+                        "enabled": early_stopping_enabled,
+                        "monitor": "validation_loss",
+                        "mode": "min",
+                        "patience": patience,
+                        "min_delta": min_delta,
+                        "warmup_epochs": warmup_epochs,
+                    },
                     "duration_seconds": total_duration,
                     "tracking_run_id": tracker.run_id,
                     "epochs": history,
@@ -145,15 +198,30 @@ def train_experiment(config: dict[str, Any]) -> dict[str, Any]:
                 f"Época {epoch:03d}/{epochs}: train_loss={train_loss:.6f}, "
                 f"validation_loss={validation_loss:.6f}"
             )
+            if stopped_early:
+                print(
+                    "Early stopping activado: "
+                    f"{patience} épocas sin mejora después del calentamiento; "
+                    f"mejor época={best_epoch:03d}."
+                )
+                break
 
         total_duration = time.perf_counter() - started_at
         tracker.log_metrics(
             {
                 "training/best_validation_loss": best_loss,
+                "training/best_epoch": best_epoch,
+                "training/completed_epochs": len(history),
+                "training/stopped_early": float(stopped_early),
                 "training/duration_seconds": total_duration,
             }
         )
-        tracker.set_tags({"anuraset.training_recorded": "true"})
+        tracker.set_tags(
+            {
+                "anuraset.training_recorded": "true",
+                "anuraset.stopped_early": str(stopped_early).lower(),
+            }
+        )
         tracker.log_artifact(history_path, artifact_path="training")
         tracker.end("FINISHED")
     except BaseException:
@@ -166,6 +234,9 @@ def train_experiment(config: dict[str, Any]) -> dict[str, Any]:
         "last_checkpoint": str(last_path),
         "history": str(history_path),
         "best_validation_loss": best_loss,
+        "best_epoch": best_epoch,
+        "completed_epochs": len(history),
+        "stopped_early": stopped_early,
         "device": str(device),
         "tracking_run_id": tracker.run_id,
     }

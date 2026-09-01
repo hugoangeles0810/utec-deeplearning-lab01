@@ -297,9 +297,11 @@ uv run --group tracking python -m anuraset_dl.train --config configs/dlognet_mel
 uv run --group tracking python -m anuraset_dl.train --config configs/dlognet_fbrs.yaml
 ```
 
-Evaluación carga el mejor checkpoint seleccionado por pérdida de validación. Los checkpoints
-incluyen las huellas de configuración, metadatos y manifiestos; la variante FBRS incorpora además
-la identidad del banco congelado mediante la representación precalculada.
+Evaluación carga el mejor checkpoint seleccionado por pérdida de validación. El entrenamiento
+vigente aplica el *early stopping* común de la matriz: cinco épocas de calentamiento y paciencia
+de cinco épocas sin reducción de esa pérdida. Los checkpoints incluyen las huellas de
+configuración, metadatos y manifiestos; la variante FBRS incorpora además la identidad del banco
+congelado mediante la representación precalculada.
 
 ## Verificación requerida
 
@@ -346,7 +348,8 @@ Permanecen pendientes, con las mismas particiones y el mismo protocolo:
 - evaluar tamaños de kernel y cotas o inicializaciones alternativas de `σ`;
 - comparar una escala compartida por BDCM frente a escalas por orientación;
 - ablacionar la conexión de identidad y la normalización de los kernels;
-- separar el efecto del calendario de entrenamiento mediante *early stopping*;
+- repetir la matriz con el *early stopping* vigente y comparar duración y métricas con la
+  ejecución histórica de 50 épocas;
 - reportar parámetros, FLOPs, memoria y latencia junto con la calidad predictiva;
 - inspeccionar respuestas a patrones sintéticos y producir Grad-CAM sobre ejemplos de anuros;
 - validar si las interpretaciones direccionales son acústicamente coherentes con especialistas.

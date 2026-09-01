@@ -6,6 +6,7 @@ import numpy as np
 import pandas as pd
 import pytest
 import soundfile as sf
+import torch
 
 from anuraset_dl.evaluate import evaluate_experiment
 from anuraset_dl.fbrs import fit_fbrs_bank
@@ -82,6 +83,14 @@ def _synthetic_experiment(tmp_path: Path) -> dict:
             "device": "cpu",
             "num_workers": 0,
             "checkpoint_dir": str(tmp_path / "checkpoints"),
+            "early_stopping": {
+                "enabled": False,
+                "monitor": "validation_loss",
+                "mode": "min",
+                "patience": 5,
+                "min_delta": 0.0,
+                "warmup_epochs": 0,
+            },
         },
         "evaluation": {
             "threshold_strategy": "per_class_validation_f1",
@@ -197,6 +206,43 @@ def test_runtime_options_do_not_change_semantic_fingerprint(tmp_path: Path) -> N
 
     changed["training"]["learning_rate"] = 0.01
     assert config_fingerprint(changed) != config_fingerprint(config)
+
+
+def test_early_stopping_persists_a_complete_training_run(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    config = _synthetic_experiment(tmp_path)
+    config["training"]["epochs"] = 10
+    config["training"]["early_stopping"] = {
+        "enabled": True,
+        "monitor": "validation_loss",
+        "mode": "min",
+        "patience": 2,
+        "min_delta": 0.0,
+        "warmup_epochs": 3,
+    }
+    validation_losses = iter((1.0, 0.8, 0.81, 0.82, 0.83))
+
+    def fake_run_epoch(model, loader, criterion, device, optimizer):  # type: ignore[no-untyped-def]
+        return 0.5 if optimizer is not None else next(validation_losses)
+
+    monkeypatch.setattr("anuraset_dl.train._run_epoch", fake_run_epoch)
+
+    training = train_experiment(config)
+    history = json.loads(Path(training["history"]).read_text(encoding="utf-8"))
+    best = torch.load(training["best_checkpoint"], map_location="cpu", weights_only=True)
+    last = torch.load(training["last_checkpoint"], map_location="cpu", weights_only=True)
+
+    assert training["stopped_early"] is True
+    assert training["completed_epochs"] == 5
+    assert training["best_epoch"] == 2
+    assert history["stop_reason"] == "early_stopping"
+    assert history["training_completed"] is True
+    assert history["epochs"][-1]["epochs_without_improvement"] == 2
+    assert best["epoch"] == 2
+    assert last["epoch"] == 5
+    assert last["training_completed"] is True
+    assert last["stopped_early"] is True
 
 
 def test_mlflow_links_training_and_evaluation_in_the_same_run(tmp_path: Path) -> None:

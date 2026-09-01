@@ -3,6 +3,7 @@ from pathlib import Path
 
 import pytest
 
+from anuraset_dl.runtime import config_fingerprint
 from anuraset_dl.utils import load_config, num_outputs, validate_config
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -29,6 +30,14 @@ def test_project_configs_are_valid(filename: str) -> None:
         "SCIFUS",
         "SCINAS",
     ]
+    assert config["training"]["early_stopping"] == {
+        "enabled": True,
+        "monitor": "validation_loss",
+        "mode": "min",
+        "patience": 5,
+        "min_delta": 0.0,
+        "warmup_epochs": 5,
+    }
 
 
 def test_config_rejects_duplicated_output_count() -> None:
@@ -84,3 +93,19 @@ def test_config_rejects_lossy_feature_cache() -> None:
 
     with pytest.raises(ValueError, match="cache.dtype=float32"):
         validate_config(config)
+
+
+def test_config_rejects_invalid_early_stopping_patience() -> None:
+    config = deepcopy(load_config(ROOT / "configs" / "baseline.yaml"))
+    config["training"]["early_stopping"]["patience"] = 0
+
+    with pytest.raises(ValueError, match="patience debe ser un entero positivo"):
+        validate_config(config)
+
+
+def test_early_stopping_changes_the_semantic_fingerprint() -> None:
+    config = load_config(ROOT / "configs" / "baseline.yaml")
+    changed = deepcopy(config)
+    changed["training"]["early_stopping"]["patience"] = 10
+
+    assert config_fingerprint(changed) != config_fingerprint(config)
