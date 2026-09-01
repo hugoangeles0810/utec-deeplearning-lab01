@@ -174,7 +174,7 @@ La distribución produce cuatro grupos nítidos para el protocolo actual:
 - 2 etiquetas no tienen positivos.
 
 El umbral de 10 grabaciones no afirma que una clase quede bien representada estadísticamente.
-Es el mínimo compatible con reservar 6 grabaciones positivas para entrenamiento, 2 para
+Es el mínimo compatible con reservar 8 grabaciones positivas para entrenamiento, 2 para
 validación. La coocurrencia puede impedir una asignación concreta incluso cuando
 los conteos marginales alcanzan ese mínimo; por eso el generador debe validar las restricciones y
 detenerse si no puede cumplirlas.
